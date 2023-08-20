@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from "express";
 import { getConfigFile, parseCorsOrigins} from "medusa-core-utils";
-import InventoryProductService from "services/inventoryProduct.js";
+import InventoryProductService from "services/inventory-product.js";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { IProductQuery, IRetriveInventoryProductQuery } from "interfaces/moveon-product";

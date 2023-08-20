@@ -100,9 +100,7 @@ class InventoryProductService extends TransactionBaseService {
 			const productRepository = this.activeManager_.withRepository(this.productRepository_)
 		const createdProduct = productRepository.create({
       title,
-      profile_id, 
       metadata: {"source":"moveon"}
-
     })
     try{
       const newProduct = await productRepository.save(createdProduct)
