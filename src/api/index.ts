@@ -3,14 +3,14 @@ import { getConfigFile, parseCorsOrigins} from "medusa-core-utils";
 import InventoryProductService from "services/inventory-product.js";
 import bodyParser from "body-parser";
 import cors from "cors";
-import { IProductQuery, IRetriveInventoryProductQuery } from "interfaces/moveon-product";
+import { IProductQuery, IRetrieveInventoryProductQuery } from "interfaces/moveon-product";
 
 const DEFAULT_lIMIT = 20;
 
 
 export default function createRouter(rootDirectory: string, options: any): Router {
   const router = express.Router();
-  const token = "25|VVR1ftERDyvk0MvMJXW7cDTDkRvDNjvZJdRGHqwy";
+  const token = process.env.MOVEON_API_TOKEN;
 
   const { configModule } = getConfigFile(rootDirectory, `medusa-config`);
    /* @ts-ignore */
@@ -160,12 +160,12 @@ export default function createRouter(rootDirectory: string, options: any): Route
   
   
 
-  router.get('/retrive-inventory-product', async (req: Request, res: Response) => {
+  router.get('/retrieve-inventory-product', async (req: Request, res: Response) => {
       const InventoryProductServiceInstance = req.scope.resolve('inventoryProductService');
       const {
         offset,
         limit,
-      } = req.query as IRetriveInventoryProductQuery;
+      } = req.query as IRetrieveInventoryProductQuery;
   
       const filters = {
         limit: limit ? Number(limit) : DEFAULT_lIMIT,
@@ -178,7 +178,7 @@ export default function createRouter(rootDirectory: string, options: any): Route
         res.status(200).json({
             ...response,
             statusCode: 200,
-            message: "Retrive inventory product successful",
+            message: "Retrieve inventory product successful",
           });
       }catch (error:any) {
         res.status(error.status || 500).json({
