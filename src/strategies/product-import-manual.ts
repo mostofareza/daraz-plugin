@@ -88,7 +88,8 @@ class ImportProductsManualStrategy extends AbstractBatchJobStrategy {
 
       for (const productOp of products) {
         const productDetails = await this.inventoryProductService_.getProductDetailsByUrl(productOp.link)
-        await productServiceTx.create({title:productDetails.data.title, metadata:{
+        //@ts-ignore
+        await productServiceTx.create({title:productDetails.data.title, images: productDetails.data.gallery.map(g=>g.url), metadata:{
           source: "moveon"
         }})
       }
