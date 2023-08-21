@@ -121,7 +121,7 @@ export interface IInventoryProductDataType {
     pr?: number;
   }
   
-  export interface IRetriveInventoryProductQuery extends Pick<IProductQuery, 'limit' | 'offset'> {}
+  export interface IRetrieveInventoryProductQuery extends Pick<IProductQuery, 'limit' | 'offset'> {}
   
   // after getting inventory response we will modify this response and define our own type
   export interface IInventoryProductInternalType {
