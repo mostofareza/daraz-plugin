@@ -1,6 +1,6 @@
 import { Product } from "@medusajs/medusa/dist/models";
 
-  export interface IRetriveInventoryProductReturnType {
+  export interface IRetrieveInventoryProductReturnType {
     products: Product[];
     offset: number;
     limit: number;
