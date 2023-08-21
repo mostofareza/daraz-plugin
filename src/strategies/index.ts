@@ -1,7 +1,8 @@
 import { BatchJob } from "@medusajs/medusa"
 
 export type IProduct = {
-    title: string
+    vpid: string, 
+    link: string
 }
 
 export type ImportProductsManualBatchJobContext = {

@@ -1,17 +1,19 @@
 import { EntityManager } from "typeorm"
 import {ProductService , BatchJobService, AbstractBatchJobStrategy, CreateBatchJobInput } from "@medusajs/medusa"
 import { ImportProductsManualBatchJob, ImportProductsManualBatchJobContext } from "strategies"
+import InventoryProductService from "services/inventory-product"
 
 
 type InjectedDependencies = {
+  inventoryProductService: InventoryProductService
   productService: ProductService
   batchJobService: BatchJobService
   manager: EntityManager
 }
 
 class ImportProductsManualStrategy extends AbstractBatchJobStrategy {
-  public static identifier = "import-products-manual-strategy"
-  public static batchType = "import-products-manual"
+  public static identifier = "product-import-manual-strategy"
+  public static batchType = "product-import-manual"
 
   public defaultMaxRetry = 3
 
@@ -19,10 +21,12 @@ class ImportProductsManualStrategy extends AbstractBatchJobStrategy {
 
   protected readonly batchJobService_: BatchJobService
   protected readonly productService_: ProductService
+  protected readonly inventoryProductService_: InventoryProductService
 
   constructor({
     batchJobService,
     productService,
+    inventoryProductService,
     manager,
   }: InjectedDependencies) {
     // eslint-disable-next-line prefer-rest-params
@@ -31,6 +35,7 @@ class ImportProductsManualStrategy extends AbstractBatchJobStrategy {
     this.manager_ = manager
     this.batchJobService_ = batchJobService
     this.productService_ = productService
+    this.inventoryProductService_ = inventoryProductService
 
   }
 
@@ -74,13 +79,18 @@ class ImportProductsManualStrategy extends AbstractBatchJobStrategy {
           .withTransaction(transactionManager)
           .retrieve(batchJobId)) as ImportProductsManualBatchJob
 
-          const products = batchJob.context?.products
+      const products = batchJob.context?.products
 
       const productServiceTx =
       this.productService_.withTransaction(transactionManager)
 
+      this.inventoryProductService_.setToken(process.env.MOVEON_API_TOKEN);
+
       for (const productOp of products) {
-        await productServiceTx.create(productOp)
+        const productDetails = await this.inventoryProductService_.getProductDetailsByUrl(productOp.link)
+        await productServiceTx.create({title:productDetails.data.title, metadata:{
+          source: "moveon"
+        }})
       }
 
       
