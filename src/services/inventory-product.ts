@@ -6,10 +6,10 @@ import {
   IProductDetailsResponse,
   IProductDetailsResponseData,
   IProductQuery,
-  IRetriveInventoryProductQuery,
+  IRetrieveInventoryProductQuery,
 } from "interfaces/moveon-product";
 import { ProductRepository } from '@medusajs/medusa/dist/repositories/product'
-import { IRetriveInventoryProductReturnType } from "interfaces/medusa-product";
+import { IRetrieveInventoryProductReturnType } from "interfaces/medusa-product";
 
  
 class InventoryProductService extends TransactionBaseService {
@@ -41,7 +41,17 @@ class InventoryProductService extends TransactionBaseService {
     this.apiRequest = this.initAxiosClient(token);
   }
 
-  // Fetch list of products
+  /**
+   * Get products from moveon based on provided filters.
+   * @param {IProductQuery} filters - filters
+   * @return {IInventoryProductInternalType} an object containing
+   *    products,
+   *    filters,
+   *    offset,
+   *    limit,
+   *    count,
+   *    error: if any
+   */
   async getProducts(
     filters: IProductQuery
   ): Promise<IInventoryProductInternalType> {
@@ -75,7 +85,17 @@ class InventoryProductService extends TransactionBaseService {
     }
   }
 
-  // Get product details
+
+  /**
+   * Get single product from moveon with matched link.
+   * @param url - string
+   * @return {IInventoryProductInternalType} an object containing
+   *    status,
+   *    code,
+   *    message,
+   *    data,
+   *    error: if any
+   */
   async getProductDetailsByUrl(url: string): Promise<IProductDetailsResponse> {
     try {
       const response = await this.apiRequest.post<
@@ -92,7 +112,12 @@ class InventoryProductService extends TransactionBaseService {
   }
 
 
-
+ /**
+   * Add product from moveon to medusa.
+   * @param product - object
+   * @return new product,
+   *    error: if any
+   */
   async addProduct(product : IProductDetailsResponseData) {
     // @ts-ignore
 		const { title, description, vid, image, gallery ,profile_id} = product
@@ -110,9 +135,15 @@ class InventoryProductService extends TransactionBaseService {
     }
 	}
 
+  /**
+   * Get products that has metadata source = moveon.
+   * @param filters
+   * @return products, offset, limit, count
+   *    error: if any
+   */
   async getInventoryProduct(
-    filters: IRetriveInventoryProductQuery
-  ): Promise<IRetriveInventoryProductReturnType> {
+    filters: IRetrieveInventoryProductQuery
+  ): Promise<IRetrieveInventoryProductReturnType> {
     const { limit, offset } = filters;
 
     const currentPage = Math.floor((offset || 0) / (limit || 0)) + 1;
