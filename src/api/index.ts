@@ -10,7 +10,7 @@ const DEFAULT_lIMIT = 20;
 
 export default function createRouter(rootDirectory: string, options: any): Router {
   const router = express.Router();
-  const token = process.env.MOVEON_API_TOKEN;
+  const token = process.env.MOVEON_API_TOKEN || "";
 
   const { configModule } = getConfigFile(rootDirectory, `medusa-config`);
    /* @ts-ignore */

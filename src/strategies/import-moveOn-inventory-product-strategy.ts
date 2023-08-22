@@ -15,6 +15,7 @@ import {
 import InventoryProductService from "services/inventory-product";
 import { title } from "process";
 import { CreateProductInput } from "@medusajs/medusa/dist/types/product";
+import { IPropType, IPropValueType, ISkuType } from "interfaces/moveon-product";
 
 type InjectedDependencies = {
   inventoryProductService: InventoryProductService;
@@ -78,6 +79,9 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     });
   }
 
+
+
+
   async processJob(batchJobId: string): Promise<void> {
     return await this.atomicPhase_(async (transactionManager) => {
       let batchJob = (await this.batchJobService_
@@ -87,7 +91,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
       const products = batchJob.context?.products;
 
       const productServiceTx =
-        this.productService_.withTransaction(transactionManager);
+      this.productService_.withTransaction(transactionManager);
 
       this.inventoryProductService_.setToken(process.env.MOVEON_API_TOKEN || "");
       try {
@@ -113,37 +117,43 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   };
                 }) || [],
 
-                
-              // variants: productData.variation.skus?.map((s) => {
-              //   const propsSplitArray = s.props.split(",");
-              //   let propsValue = [];
-              //   if (Array.isArray(propsSplitArray)) {
-              //     propsSplitArray.map((x) => {
-              //       productData.variation.props?.map((prop) => {
-              //         const matchPropsValue = prop.values?.find(
-              //           (prop) => prop.id === x
-              //         );
+                variants:productData.variation.skus.map((s) => {
+                  const propsValues = this.getPropsValuesFromSku(s,(productData.variation.props || []))
+                  const propsNameStringArray = this.getValueNamesArray(propsValues);
+                  const titleFromPropsNameString = this.getConcatenatedValueNames(propsValues);
+                  let  weight:undefined | number = undefined
+                  let  weight_type:undefined | number = undefined
 
-              //         if (matchPropsValue) {
-              //           propsValue.push({
-              //             value: matchPropsValue.name,
-              //             metadata: { ...matchPropsValue },
-              //           });
-              //         }
-              //       });
-              //     });
-              //   } else {
-              //     propsValue = [];
-              //   }
+                       if(productData.meta.weight){
+                         weight = Number(productData.meta.weight)
+                       }
+                       if(productData.meta.weight_type){
+                        weight_type = Number(productData.meta.length)
+                       }
 
-              //   return {
-              //     title: "here is title",
-              //     options: propsValue,
-              //     prices: [{ amount: s.price.actual }],
-              //     inventory_quantity: 10,
-              //     manage_inventory: true,
-              //   };
-              // }),
+                       console.log(weight,"weight")
+                       
+                  return {
+                    title: `${productData.title}-${titleFromPropsNameString}`,
+                    sku: String(s.id),
+                    inventory_quantity: s.stock.available,
+                    allow_backorder: false,
+                    manage_inventory: true,
+                    weight: weight,
+                    origin_country: productData.shop.country_code,
+                    prices:[{ 
+                      currency_code:productData.shop.currency_code.toLowerCase(),
+                      amount:Math.round(s.price.actual)
+                    }],
+                     options: propsNameStringArray.map((val) =>{ 
+                      return {value:val}
+                     }),
+                 
+                    metadata:{
+                      weight_type
+                    }
+                  };
+                }),
               description:  productData.description !== null ? productData.description : undefined,
               metadata: {
                 source: "moveon",
@@ -181,6 +191,38 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
 
   public async buildTemplate(): Promise<string> {
     return "";
+  }
+
+
+
+  // helper method 
+
+  private getPropsValuesFromSku(sku: ISkuType, props: IPropType[]): IPropValueType[] {
+    const propIds = sku.props.split(",");
+  
+    const propsValues: IPropValueType[] = [];
+  
+    for (const propId of propIds) {
+      for (const prop of props) {
+        const value = prop.values.find((value) => value.id === propId);
+  
+        if (value) {
+          propsValues.push(value);
+          break; // No need to continue searching within other props
+        }
+      }
+    }
+  
+    return propsValues;
+  }
+
+  private getValueNamesArray(values: IPropValueType[]): string[] {
+    return values.map((value) => value.name);
+  }
+
+  private getConcatenatedValueNames(values: IPropValueType[]): string {
+    const names = values.map((value) => value.name);
+    return names.join("-");
   }
 }
 
