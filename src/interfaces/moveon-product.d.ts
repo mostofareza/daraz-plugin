@@ -141,6 +141,39 @@ export interface IInventoryProductDataType {
   }
   
   ////// inventory product details //////
+
+  interface ISkuType {
+    id: number;
+    price: {
+      offer: number | null;
+      actual: number;
+      currency: string | null;
+      preorder: number | null;
+    };
+    props: string;
+    stock: {
+      min: number | null;
+      limit: number | null;
+      available: number;
+    };
+  }
+
+  interface IPropValueType {
+    id: string;
+    name: string;
+    color: string | null;
+    image: string | null;
+    thumb: string | null;
+    title: string;
+  }
+  
+  interface IPropType {
+    id: string;
+    name: string;
+    values: PropValue[];
+  }
+  
+  
   export interface IProductDetailsResponseData {
     id: number;
     shop_id: number;
@@ -163,10 +196,15 @@ export interface IInventoryProductDataType {
     sales: number;
     link: string;
     image: string;
+    variation:{ 
+      skus:ISkuType[]; 
+      props:IPropType[] | null;
+    };
     meta: {
       vendor: string;
       videos: { url: string; preview: string }[];
       product_id: string;
+      [key:string]:string
     };
   
     gallery: {
