@@ -124,7 +124,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   };
                 }) || [],
 
-              variants: productData.variation.skus.map((s, index) => {
+              variants: productData.variation.skus.map((s) => {
                 const propsValues = this.getPropsValuesFromSku(
                   s,
                   productData.variation.props || []
@@ -165,6 +165,9 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   ],
                   metadata: {
                     weight_type,
+                    original_options: propsNameStringArray.map(
+                      (value) => value
+                    ),
                   },
                 };
               }),
@@ -189,11 +192,11 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                 }
               );
 
-              newProductWithVariant.variants.map(async (variant) => {
+              newProductWithVariant.variants.map(async (variant, index) => {
                 await this.productVariantService_.addOptionValue(
                   variant.id,
-                  newProduct.options[0].id,
-                  options[0].value
+                  newProduct.options[index].id,
+                  variant.metadata.original_options as any
                 );
               });
 
