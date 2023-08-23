@@ -109,7 +109,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
 
           if (productDetails.code === 200) {
             const productData = productDetails.data;
-            const options: { index: number; value: string }[] = [];
+            const options: string[][] = [];
 
             const productCreationData: CreateProductInput = {
               title: productData.title,
@@ -131,9 +131,8 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                 );
                 const propsNameStringArray =
                   this.getValueNamesArray(propsValues);
-                propsNameStringArray.map((val, index) => {
-                  options.push({ index: index, value: val });
-                });
+
+                  options.push(propsNameStringArray)
                 const titleFromPropsNameString =
                   this.getConcatenatedValueNames(propsValues);
                 let weight: undefined | number = undefined;
@@ -193,12 +192,14 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
               );
 
               newProductWithVariant.variants.map(async (variant, index) => {
-                await this.productVariantService_.addOptionValue(
-                  variant.id,
-                  newProduct.options[index].id,
-                  variant.metadata.original_options as any
-                );
-              });
+                options[index].forEach(async option=>{
+                  await this.productVariantService_.addOptionValue(
+                    variant.id,
+                    newProduct.options[0].id,
+                    option
+                  );
+                });  
+                })
 
               console.log(newProductWithVariant);
 
