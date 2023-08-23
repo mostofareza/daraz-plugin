@@ -109,7 +109,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
 
           if (productDetails.code === 200) {
             const productData = productDetails.data;
-            const options: string[][] = [];
+            const optionsValues: string[][] = [];
 
             const productCreationData: CreateProductInput = {
               title: productData.title,
@@ -132,7 +132,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                 const propsNameStringArray =
                   this.getValueNamesArray(propsValues);
 
-                  options.push(propsNameStringArray)
+                optionsValues.push(propsNameStringArray);
                 const titleFromPropsNameString =
                   this.getConcatenatedValueNames(propsValues);
                 let weight: undefined | number = undefined;
@@ -144,8 +144,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                 if (productData.meta.weight_type) {
                   weight_type = Number(productData.meta.length);
                 }
-
-                console.log(weight, "weight");
 
                 return {
                   title: `${productData.title}-${titleFromPropsNameString}`,
@@ -192,32 +190,24 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
               );
 
               newProductWithVariant.variants.map(async (variant, index) => {
-                options[index].forEach(async option=>{
-                  await this.productVariantService_.addOptionValue(
-                    variant.id,
-                    newProduct.options[0].id,
-                    option
-                  );
-                });  
-                })
-
-              console.log(newProductWithVariant);
-
-              console.log(newProduct.options, "inisde options");
-
-              console.log(newProductWithVariant.variants, "inside variatns");
-
-              console.log(options, "outisde optiosn");
+                optionsValues[index].forEach(
+                  async (option, optionValueIndex) => {
+                    await this.productVariantService_.addOptionValue(
+                      variant.id,
+                      newProduct.options[optionValueIndex].id,
+                      option
+                    );
+                  }
+                );
+              });
             } catch (error: any) {
-              console.log(error, "error");
-
               // console.log(error.parameters[0],"error")
-
               if (
                 error.message.includes(
                   "duplicate key value violates unique constraint"
                 )
               ) {
+                // throw new MedusaError(MedusaError.Types.INVALID_DATA, message)
                 // await productServiceTx.update(
                 //   error.parameters[0],
                 //   productCreationData
