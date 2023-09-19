@@ -1,26 +1,26 @@
 import { BaseEntity, generateEntityId } from "@medusajs/medusa";
-import { BeforeInsert, Column, Entity, Index, Unique } from "typeorm";
+import { BeforeInsert, Column, Entity, Unique } from "typeorm";
 
 @Entity()
-@Unique(["store_slug", "currency_code"]) // This enforces uniqueness for storeSlug and currencyCode pairs
+@Unique(["store_slug", "currency_code"]) // This enforces uniqueness for store_slug and currency_code pairs
 export class InventoryProductPriceSettings extends BaseEntity {
-  @Column({ type: "varchar", length: 4, nullable: true })
-  store_slug: string | undefined;
+  @Column({ type: "varchar", length: 255 })
+  store_slug!: string;
 
-  @Column({ type: "varchar", length: 4, nullable: true })
-  currency_code: string | undefined;
+  @Column({ type: "varchar", length: 4 })
+  currency_code!: string;
 
   @Column({ type: "float", nullable: true })
   conversion_rate: number | undefined;
 
   @Column({ type: "float" })
-  profit_amount: number | undefined;
+  profit_amount!: number;
 
   @Column({ type: "float" })
-  shipping_charge: number | undefined;
+  shipping_charge!: number;
 
   @Column({ type: "enum", enum: ["addition", "multiplication", "percent"] })
-  profile_operation: string | undefined;
+  profit_operation!: string;
 
   @BeforeInsert()
   private beforeInsert(): void {

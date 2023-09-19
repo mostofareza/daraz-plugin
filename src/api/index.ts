@@ -208,12 +208,31 @@ export default function createRouter(
     const InventorySettings: SettingsService =
       req.scope.resolve("settingsService");
 
+    const { limit, offset, store_slug, ...filterableFields } = req.query;
+
+    const config: {
+      take: number;
+      skip: number;
+      store_slug?: string;
+    } = {
+      take: limit ? Number(limit) : DEFAULT_lIMIT,
+      skip: offset ? Number(offset) : 0,
+    };
+
+    if (store_slug && typeof store_slug === "string") {
+      config.store_slug = store_slug;
+    }
+
     try {
-      const response = await InventorySettings.list();
+      const [response, count] = await InventorySettings.list({}, config);
+
       res.status(200).json({
         result: response,
+        count,
+        limit: config.take,
+        offset: config.skip,
         statusCode: 200,
-        message: "Retrieve regions successful",
+        message: "Retrieve price settings successful",
       });
     } catch (error: any) {
       res.status(error.status || 500).json({
@@ -226,15 +245,16 @@ export default function createRouter(
     const InventorySettings: SettingsService =
       req.scope.resolve("settingsService");
     const data = req.body;
+
     try {
       const response = await InventorySettings.create(data);
       res.status(200).json({
-        ...response,
+        result: response,
         statusCode: 200,
         message: "successfully created",
       });
     } catch (error: any) {
-      res.status(error.status || 500).json({
+      res.status(error.status || Number(error.code) || 500).json({
         error: error,
       });
     }

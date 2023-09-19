@@ -1,59 +1,80 @@
-import axios, { AxiosInstance } from "axios";
 import { TransactionBaseService } from "@medusajs/medusa";
-import {
-  IInventoryProductInternalType,
-  IInventoryResponseType,
-  IProductDetailsResponse,
-  IProductDetailsResponseData,
-  IProductQuery,
-  IRetrieveInventoryProductQuery,
-} from "interfaces/moveon-product";
-import { ProductRepository } from "@medusajs/medusa/dist/repositories/product";
-import { IRetrieveInventoryProductReturnType } from "interfaces/medusa-product";
-import RegionRepository from "@medusajs/medusa/dist/repositories/region";
-import CurrencyRepository from "@medusajs/medusa/dist/repositories/currency";
-import StoreRepository from "@medusajs/medusa/dist/repositories/store";
-import { EntityManager } from "typeorm";
 import { InventoryProductPriceSettings } from "../models/inventory-product-price-settings";
+import { EntityManager, EntityNotFoundError } from "typeorm";
+import { isDefined, MedusaError } from "medusa-core-utils";
+import { buildQuery } from "@medusajs/medusa";
+
+import {
+  PriceSettingCreate,
+  PriceSettingList,
+} from "interfaces/price-seetings";
+
+type InjectedDependencies = {
+  manager: EntityManager;
+  priceRoleRepository: typeof InventoryProductPriceSettings;
+};
 
 class SettingsService extends TransactionBaseService {
-  async list(): Promise<InventoryProductPriceSettings[]> {
-    const postRepo = this.activeManager_.getRepository(
-      InventoryProductPriceSettings
-    );
-    return await postRepo.find();
+  constructor(container: InjectedDependencies) {
+    super(container);
   }
 
-  async create(priceSettings: {
-    store_slug: string;
-    currency_code: string;
-    conversion_rate: number;
-    profit_amount: number;
-    shipping_charge: number;
-    profile_operation: "addition" | "multiplication" | "percent";
-  }) {
+  async list(
+    selector = {},
+    config: { skip: number; take: number; store_slug?: string } = {
+      skip: 0,
+      take: 2,
+    }
+  ): Promise<any> {
+    const repository = this.activeManager_.getRepository(
+      InventoryProductPriceSettings
+    );
+
+    const query = buildQuery(selector, config);
+    return await repository.findAndCount(query);
+  }
+
+  // async list(
+  //   selector = {},
+  //   config = {
+  //     relations: [],
+  //     skip: 0,
+  //     take: 2,
+  //   }
+  // ) {
+  //   return this.atomicPhase_(async (manager) => {
+  //     const repository = manager.getRepository(InventoryProductPriceSettings);
+  //     const count = repository.count();
+  //     const query = buildQuery(selector, config);
+  //     try {
+  //       const result = await repository.find(query);
+  //       return [result, count];
+  //     } catch (error: any) {}
+  //   });
+  // }
+
+  async create(
+    priceSettings: PriceSettingCreate
+  ): Promise<InventoryProductPriceSettings> {
     const postRepo = this.activeManager_.getRepository(
       InventoryProductPriceSettings
     );
     try {
       const data = postRepo.create(priceSettings);
       return await postRepo.save(data);
-    } catch (error) {
-      this.handleErrorResponse(error);
+    } catch (error: any) {
+      if (error.detail?.includes("already exists")) {
+        throw new MedusaError(
+          MedusaError.Types.DUPLICATE_ERROR,
+          `Duplicate entry for store_slug and currency_code.`,
+          "422"
+        );
+      } else {
+        // Handle other errors or rethrow the original error
+        this.handleErrorResponse(error);
+      }
     }
   }
-
-  // async getRegions(): Promise<any> {
-  //   try {
-  //     const regionRepository = this.manager.getRepository(
-  //       this.inventoryProductPriceSettingsRepository_
-  //     );
-  //     return regionRepository.find();
-  //   } catch (error) {
-  //     console.log(error);
-  //     this.handleErrorResponse(error);
-  //   }
-  // }
 
   // Reusable error handling function
   private handleErrorResponse(error: any): never {
