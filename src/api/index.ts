@@ -1,6 +1,12 @@
 import express, { Router, Request, Response } from "express";
-import { getConfigFile, parseCorsOrigins } from "medusa-core-utils";
+import {
+  getConfigFile,
+  parseCorsOrigins,
+  MedusaError,
+} from "medusa-core-utils";
 import InventoryProductService from "services/inventory-product.js";
+import { errorHandler } from "@medusajs/medusa";
+
 import bodyParser from "body-parser";
 import cors from "cors";
 import {
@@ -247,24 +253,71 @@ export default function createRouter(
     }
   });
 
-  router.post("/price-role-settings", async (req: Request, res: Response) => {
-    const InventorySettings: SettingsService =
-      req.scope.resolve("settingsService");
-    const data = req.body;
+  router.post(
+    "/price-role-settings",
+    async (req: Request, res: Response, next) => {
+      // const schema = validator.object().keys({
+      //   product_id: validator.string().required(),
+      //   rating: validator.number().required(),
+      //   body: validator.string().optional(),
+      //   email: validator.string().required(),
+      //   name: validator.string().optional(),
+      // });
 
-    try {
-      const response = await InventorySettings.create(data);
-      res.status(200).json({
-        result: response,
-        statusCode: 200,
-        message: "successfully created",
-      });
-    } catch (error: any) {
-      res.status(error.status || Number(error.code) || 500).json({
-        error: error,
-      });
+      // const { value, error } = schema.validate(req.body);
+
+      // if (error) {
+      //   throw new MedusaError(
+      //     MedusaError.Types.INVALID_DATA,
+      //     error.details.join(", ")
+      //   );
+      // }
+
+      const InventorySettings: SettingsService =
+        req.scope.resolve("settingsService");
+      const data = req.body;
+
+      try {
+        const response = await InventorySettings.create(data);
+        res.status(200).json({
+          result: response,
+          statusCode: 200,
+          message: "successfully created",
+        });
+      } catch (error: any) {
+        res.status(error.status || Number(error.code) || 500).json({
+          error: error,
+        });
+      }
     }
-  });
+  );
+
+  // update
+
+  router.patch(
+    "/price-role-settings/:id",
+    async (req: Request, res: Response, next) => {
+      const id = req.params.id;
+      const updatedData = req.body;
+      const InventorySettings: SettingsService =
+        req.scope.resolve("settingsService");
+
+      try {
+        const response = await InventorySettings.update({ id, ...updatedData });
+        res.status(200).json({
+          result: response,
+          statusCode: 200,
+          message: "successfully updated",
+        });
+      } catch (error: any) {
+        res.status(error.status || Number(error.code) || 500).json({
+          error: error,
+        });
+      }
+    }
+  );
+
+  router.use(errorHandler());
 
   module.exports = router;
 

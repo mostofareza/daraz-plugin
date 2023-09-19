@@ -1,7 +1,7 @@
 import { BaseEntity, generateEntityId } from "@medusajs/medusa";
 import { BeforeInsert, Column, Entity, Unique } from "typeorm";
 
-export enum ProfitOperation {
+enum ProfitOperation {
   ADDITION = "addition",
   MULTIPLICATION = "multiplication",
   PERCENT = "percent",
