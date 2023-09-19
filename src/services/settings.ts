@@ -102,6 +102,28 @@ class SettingsService extends TransactionBaseService {
     }
   }
 
+  async delete(id: string): Promise<any | null> {
+    const priceSettingsRepository = this.activeManager_.getRepository(
+      InventoryProductPriceSettings
+    );
+    try {
+      const existingPriceSettings = await this.retrieve(id);
+
+      if (!existingPriceSettings) {
+        throw new MedusaError(
+          MedusaError.Types.NOT_FOUND,
+          `No item with the ID "${id}" was found for deletion.`
+        );
+      }
+      await priceSettingsRepository.remove([existingPriceSettings]);
+      return {
+        id,
+      };
+    } catch (error) {
+      this.handleErrorResponse(error);
+    }
+  }
+
   async retrieve(
     id: string,
     config: FindConfig<{}> = {}

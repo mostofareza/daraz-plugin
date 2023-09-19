@@ -317,6 +317,30 @@ export default function createRouter(
     }
   );
 
+  // delete
+  router.delete(
+    "/price-role-settings/:id",
+    async (req: Request, res: Response, next) => {
+      const id = req.params.id;
+
+      const InventorySettings: SettingsService =
+        req.scope.resolve("settingsService");
+
+      try {
+        const response = await InventorySettings.delete(id);
+        res.status(200).json({
+          result: response,
+          statusCode: 200,
+          message: "successfully deleted",
+        });
+      } catch (error: any) {
+        res.status(error.status || Number(error.code) || 500).json({
+          error: error,
+        });
+      }
+    }
+  );
+
   router.use(errorHandler());
 
   module.exports = router;
