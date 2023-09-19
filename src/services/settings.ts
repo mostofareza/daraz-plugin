@@ -3,11 +3,7 @@ import { InventoryProductPriceSettings } from "../models/inventory-product-price
 import { EntityManager, EntityNotFoundError } from "typeorm";
 import { isDefined, MedusaError } from "medusa-core-utils";
 import { buildQuery } from "@medusajs/medusa";
-
-import {
-  PriceSettingCreate,
-  PriceSettingList,
-} from "interfaces/price-seetings";
+import { PriceSettingCreate } from "interfaces/price-settings";
 
 type InjectedDependencies = {
   manager: EntityManager;
@@ -20,8 +16,7 @@ class SettingsService extends TransactionBaseService {
   }
 
   async list(
-    selector = {},
-    config: { skip: number; take: number; store_slug?: string } = {
+    config: { skip: number; take: number; where?: { store_slug?: string } } = {
       skip: 0,
       take: 2,
     }
@@ -29,37 +24,17 @@ class SettingsService extends TransactionBaseService {
     const repository = this.activeManager_.getRepository(
       InventoryProductPriceSettings
     );
-
-    const query = buildQuery(selector, config);
-    return await repository.findAndCount(query);
+    return await repository.findAndCount(config);
   }
-
-  // async list(
-  //   selector = {},
-  //   config = {
-  //     relations: [],
-  //     skip: 0,
-  //     take: 2,
-  //   }
-  // ) {
-  //   return this.atomicPhase_(async (manager) => {
-  //     const repository = manager.getRepository(InventoryProductPriceSettings);
-  //     const count = repository.count();
-  //     const query = buildQuery(selector, config);
-  //     try {
-  //       const result = await repository.find(query);
-  //       return [result, count];
-  //     } catch (error: any) {}
-  //   });
-  // }
 
   async create(
     priceSettings: PriceSettingCreate
-  ): Promise<InventoryProductPriceSettings> {
+  ): Promise<InventoryProductPriceSettings[]> {
     const postRepo = this.activeManager_.getRepository(
       InventoryProductPriceSettings
     );
     try {
+      // @ts-ignore
       const data = postRepo.create(priceSettings);
       return await postRepo.save(data);
     } catch (error: any) {

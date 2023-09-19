@@ -1,6 +1,11 @@
 import { BaseEntity, generateEntityId } from "@medusajs/medusa";
 import { BeforeInsert, Column, Entity, Unique } from "typeorm";
 
+export enum ProfitOperation {
+  ADDITION = "addition",
+  MULTIPLICATION = "multiplication",
+  PERCENT = "percent",
+}
 @Entity()
 @Unique(["store_slug", "currency_code"]) // This enforces uniqueness for store_slug and currency_code pairs
 export class InventoryProductPriceSettings extends BaseEntity {
@@ -19,8 +24,8 @@ export class InventoryProductPriceSettings extends BaseEntity {
   @Column({ type: "float" })
   shipping_charge!: number;
 
-  @Column({ type: "enum", enum: ["addition", "multiplication", "percent"] })
-  profit_operation!: string;
+  @Column({ type: "enum", enum: ProfitOperation })
+  profit_operation!: ProfitOperation;
 
   @BeforeInsert()
   private beforeInsert(): void {

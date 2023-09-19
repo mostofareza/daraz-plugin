@@ -204,33 +204,39 @@ export default function createRouter(
 
   // inventory product price role settings
 
-  router.get("/currency", async (req: Request, res: Response) => {
+  router.get("/price-role-settings", async (req: Request, res: Response) => {
     const InventorySettings: SettingsService =
       req.scope.resolve("settingsService");
 
-    const { limit, offset, store_slug, ...filterableFields } = req.query;
+    const { limit, offset, store_slug } = req.query;
 
     const config: {
       take: number;
       skip: number;
-      store_slug?: string;
+      where?: { store_slug?: string };
     } = {
       take: limit ? Number(limit) : DEFAULT_lIMIT,
       skip: offset ? Number(offset) : 0,
     };
 
     if (store_slug && typeof store_slug === "string") {
-      config.store_slug = store_slug;
+      config.where = { store_slug };
     }
 
     try {
-      const [response, count] = await InventorySettings.list({}, config);
+      const [response, count] = await InventorySettings.list(config);
 
       res.status(200).json({
         result: response,
         count,
         limit: config.take,
         offset: config.skip,
+        filters: [
+          {
+            key: "store_slug",
+            value: "string",
+          },
+        ],
         statusCode: 200,
         message: "Retrieve price settings successful",
       });
@@ -241,7 +247,7 @@ export default function createRouter(
     }
   });
 
-  router.post("/currency", async (req: Request, res: Response) => {
+  router.post("/price-role-settings", async (req: Request, res: Response) => {
     const InventorySettings: SettingsService =
       req.scope.resolve("settingsService");
     const data = req.body;
