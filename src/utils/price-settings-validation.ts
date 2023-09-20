@@ -55,6 +55,10 @@ export class UpdatePriceSettingsValidation {
   conversion_rate?: number;
 
   @IsOptional()
+  @IsString({ message: "Currency code  must be a string" })
+  currency_code?: string;
+
+  @IsOptional()
   @Validate(CustomIsNumber)
   profit_amount?: number;
 

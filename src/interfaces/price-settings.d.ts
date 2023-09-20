@@ -19,6 +19,7 @@ export interface PriceSettingUpdate {
   profit_amount: number;
   shipping_charge: number;
   profit_operation: ProfitOperation;
+  currency_code: string;
 }
 
 export interface PriceSettingList extends PriceSettingCreate {

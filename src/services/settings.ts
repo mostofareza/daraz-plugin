@@ -11,6 +11,7 @@ import {
   PriceSettingCreate,
   PriceSettingUpdate,
 } from "interfaces/price-settings";
+import { ErrorParser } from "../utils/error";
 
 type InjectedDependencies = {
   manager: EntityManager;
@@ -46,15 +47,17 @@ class SettingsService extends TransactionBaseService {
       return await priceSettingsRepository.save(data);
     } catch (error: any) {
       if (error.detail?.includes("already exists")) {
-        // throw new MedusaError(
-        //   MedusaError.Types.DUPLICATE_ERROR,
-        //   `Duplicate entry for store_slug and currency_code.`,
-        //   "422"
-        // );
-
-        throw { status: 422, message: "Already exists" };
+        const errors = ErrorParser.parseAlreadyExistsErrorMessage(error.detail);
+        throw {
+          status: 422,
+          data: {
+            errors: errors.map((x) => ({
+              key: x.key,
+              message: `${x.value} already exists`,
+            })),
+          },
+        };
       } else {
-        // Handle other errors or rethrow the original error
         this.handleErrorResponse(error);
       }
     }
@@ -66,6 +69,10 @@ class SettingsService extends TransactionBaseService {
     );
     try {
       const existingPriceSettings = await this.retrieve(priceSettingsUpdate.id);
+
+      if (!this.isFalsy(priceSettingsUpdate.currency_code)) {
+        existingPriceSettings.currency_code = priceSettingsUpdate.currency_code;
+      }
 
       if (!this.isFalsy(priceSettingsUpdate.conversion_rate)) {
         existingPriceSettings.conversion_rate =
@@ -88,12 +95,24 @@ class SettingsService extends TransactionBaseService {
 
       await priceSettingsRepository.save(existingPriceSettings);
 
-      // Save the updated entity
       return {
         ...priceSettingsUpdate,
       };
-    } catch (error) {
-      this.handleErrorResponse(error);
+    } catch (error: any) {
+      if (error.detail?.includes("already exists")) {
+        const errors = ErrorParser.parseAlreadyExistsErrorMessage(error.detail);
+        throw {
+          status: 422,
+          data: {
+            errors: errors.map((x) => ({
+              key: x.key,
+              message: `${x.value} already exists`,
+            })),
+          },
+        };
+      } else {
+        this.handleErrorResponse(error);
+      }
     }
   }
 
