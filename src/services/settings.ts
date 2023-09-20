@@ -1,10 +1,6 @@
-import {
-  FindConfig,
-  TransactionBaseService,
-  errorHandler,
-} from "@medusajs/medusa";
+import { FindConfig, TransactionBaseService } from "@medusajs/medusa";
 import { InventoryProductPriceSettings } from "../models/inventory-product-price-settings";
-import { EntityManager, EntityNotFoundError } from "typeorm";
+import { EntityManager } from "typeorm";
 import { isDefined, MedusaError } from "medusa-core-utils";
 import { buildQuery } from "@medusajs/medusa";
 import {

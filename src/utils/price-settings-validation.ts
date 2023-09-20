@@ -1,13 +1,5 @@
 // UpdateInventoryProductPriceSettingsDto.ts
-import {
-  IsOptional,
-  IsNumber,
-  IsEnum,
-  Validate,
-  IsString,
-  IsObject,
-  Contains,
-} from "class-validator";
+import { IsOptional, IsNumber, Validate, IsString } from "class-validator";
 import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
