@@ -14,7 +14,9 @@ import {
   IRetrieveInventoryProductQuery,
 } from "interfaces/moveon-product";
 import SettingsService from "services/settings";
-import { StoreService } from "@medusajs/medusa";
+
+import { CreatePriceSettingValidation } from "../middlewares/create-price-validation-middlewares";
+import { UpdatePriceSettingValidation } from "../middlewares/update-price-validation-middleware";
 
 const DEFAULT_lIMIT = 20;
 
@@ -140,7 +142,6 @@ export default function createRouter(
         }
 
         InventoryProductServiceInstance.setToken(token);
-
         const productDetailsPromises = urls.map(async (url) => {
           const response =
             await InventoryProductServiceInstance.getProductDetailsByUrl(url);
@@ -255,24 +256,8 @@ export default function createRouter(
 
   router.post(
     "/price-role-settings",
+    CreatePriceSettingValidation,
     async (req: Request, res: Response, next) => {
-      // const schema = validator.object().keys({
-      //   product_id: validator.string().required(),
-      //   rating: validator.number().required(),
-      //   body: validator.string().optional(),
-      //   email: validator.string().required(),
-      //   name: validator.string().optional(),
-      // });
-
-      // const { value, error } = schema.validate(req.body);
-
-      // if (error) {
-      //   throw new MedusaError(
-      //     MedusaError.Types.INVALID_DATA,
-      //     error.details.join(", ")
-      //   );
-      // }
-
       const InventorySettings: SettingsService =
         req.scope.resolve("settingsService");
       const data = req.body;
@@ -296,9 +281,21 @@ export default function createRouter(
 
   router.patch(
     "/price-role-settings/:id",
+    UpdatePriceSettingValidation,
     async (req: Request, res: Response, next) => {
       const id = req.params.id;
       const updatedData = req.body;
+
+      if (!id) {
+        return res.status(422).json({
+          error: [
+            {
+              key: "id",
+              message: "id is required and must be a string",
+            },
+          ],
+        });
+      }
       const InventorySettings: SettingsService =
         req.scope.resolve("settingsService");
 
@@ -341,7 +338,7 @@ export default function createRouter(
     }
   );
 
-  router.use(errorHandler());
+  // router.use(errorHandler());
 
   module.exports = router;
 

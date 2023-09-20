@@ -46,11 +46,13 @@ class SettingsService extends TransactionBaseService {
       return await priceSettingsRepository.save(data);
     } catch (error: any) {
       if (error.detail?.includes("already exists")) {
-        throw new MedusaError(
-          MedusaError.Types.DUPLICATE_ERROR,
-          `Duplicate entry for store_slug and currency_code.`,
-          "422"
-        );
+        // throw new MedusaError(
+        //   MedusaError.Types.DUPLICATE_ERROR,
+        //   `Duplicate entry for store_slug and currency_code.`,
+        //   "422"
+        // );
+
+        throw { status: 422, message: "Already exists" };
       } else {
         // Handle other errors or rethrow the original error
         this.handleErrorResponse(error);
@@ -64,13 +66,6 @@ class SettingsService extends TransactionBaseService {
     );
     try {
       const existingPriceSettings = await this.retrieve(priceSettingsUpdate.id);
-
-      if (!existingPriceSettings) {
-        throw new MedusaError(
-          MedusaError.Types.NOT_FOUND,
-          `"Setting"  with id: ${priceSettingsUpdate.id} not found`
-        );
-      }
 
       if (!this.isFalsy(priceSettingsUpdate.conversion_rate)) {
         existingPriceSettings.conversion_rate =
@@ -108,13 +103,6 @@ class SettingsService extends TransactionBaseService {
     );
     try {
       const existingPriceSettings = await this.retrieve(id);
-
-      if (!existingPriceSettings) {
-        throw new MedusaError(
-          MedusaError.Types.NOT_FOUND,
-          `No item with the ID "${id}" was found for deletion.`
-        );
-      }
       await priceSettingsRepository.remove([existingPriceSettings]);
       return {
         id,
@@ -145,7 +133,8 @@ class SettingsService extends TransactionBaseService {
     if (!settings.length) {
       throw new MedusaError(
         MedusaError.Types.NOT_FOUND,
-        `Setting with id: ${id} was not found`
+        `Setting with id: ${id} was not found`,
+        "404"
       );
     }
 
