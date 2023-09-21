@@ -21,22 +21,22 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
   };
 
   const adminRouter = Router();
-  router.use("/admin", adminRouter);
+  router.use(/\/admin\/((?!auth)(?!invites).*)/, adminRouter);
 
   adminRouter.use(cors(adminCorsOptions));
   adminRouter.use(authenticate());
 
   // inventory product price role settings
-  router.get("/price-role-settings", getPriceSettingsListHandler);
+  router.get("/admin/price-role-settings", getPriceSettingsListHandler);
   router.post(
-    "/price-role-settings",
+    "/admin/price-role-settings",
     CreatePriceSettingValidation,
     createPriceSettingsHandler
   );
   router.patch(
-    "/price-role-settings/:id",
+    "/admin/price-role-settings/:id",
     UpdatePriceSettingValidation,
     updatePriceSettingsHandler
   );
-  router.delete("/price-role-settings/:id", deletePriceSettingsHandler);
+  router.delete("/admin/price-role-settings/:id", deletePriceSettingsHandler);
 }

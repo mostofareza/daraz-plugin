@@ -1,18 +1,7 @@
 import express, { Router, Request, Response } from "express";
-import {
-  getConfigFile,
-  parseCorsOrigins,
-  MedusaError,
-} from "medusa-core-utils";
+import { getConfigFile, parseCorsOrigins } from "medusa-core-utils";
 import InventoryProductService from "services/inventory-product.js";
-import {
-  FilterablePriceListProps,
-  FindConfig,
-  PriceList,
-  PriceListService,
-  PriceListStatus,
-  errorHandler,
-} from "@medusajs/medusa";
+import { errorHandler } from "@medusajs/medusa";
 
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -20,10 +9,7 @@ import {
   IProductQuery,
   IRetrieveInventoryProductQuery,
 } from "interfaces/moveon-product";
-import SettingsService from "services/settings";
 
-import { CreatePriceSettingValidation } from "../middlewares/create-price-validation-middlewares";
-import { UpdatePriceSettingValidation } from "../middlewares/update-price-validation-middleware";
 import storeRoutes from "./routes/store";
 import adminRoutes from "./routes/admin";
 
@@ -35,11 +21,9 @@ export default function createRouter(
 ): Router {
   const router = express.Router();
   const token = process.env.MOVEON_API_TOKEN || "";
-
   const { configModule } = getConfigFile(rootDirectory, `medusa-config`);
   /* @ts-ignore */
   const config = (configModule && configModule.projectConfig) || {};
-
   const storeCors = config.store_cors || "";
 
   router.use(
@@ -221,6 +205,7 @@ export default function createRouter(
 
   storeRoutes(router, options);
   adminRoutes(router, options);
+
   router.use(errorHandler());
   module.exports = router;
 

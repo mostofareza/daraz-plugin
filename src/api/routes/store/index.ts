@@ -3,7 +3,7 @@
 import { ConfigModule } from "@medusajs/medusa";
 import { Router } from "express";
 import cors from "cors";
-import { getCampaignListHandler } from "./campain";
+import { getCampaignListHandler, getCampaignProductsHandler } from "./campain";
 
 export default function storeRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -20,4 +20,5 @@ export default function storeRoutes(router: Router, options: ConfigModule) {
 
   // Define the route using the imported handler function
   storeRouter.get("/campaign-list", getCampaignListHandler);
+  storeRouter.get("/campaign-product/:id", getCampaignProductsHandler);
 }
