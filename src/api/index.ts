@@ -5,7 +5,14 @@ import {
   MedusaError,
 } from "medusa-core-utils";
 import InventoryProductService from "services/inventory-product.js";
-import { errorHandler } from "@medusajs/medusa";
+import {
+  FilterablePriceListProps,
+  FindConfig,
+  PriceList,
+  PriceListService,
+  PriceListStatus,
+  errorHandler,
+} from "@medusajs/medusa";
 
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -17,6 +24,8 @@ import SettingsService from "services/settings";
 
 import { CreatePriceSettingValidation } from "../middlewares/create-price-validation-middlewares";
 import { UpdatePriceSettingValidation } from "../middlewares/update-price-validation-middleware";
+import storeRoutes from "./routes/store";
+import adminRoutes from "./routes/admin";
 
 const DEFAULT_lIMIT = 20;
 
@@ -32,6 +41,7 @@ export default function createRouter(
   const config = (configModule && configModule.projectConfig) || {};
 
   const storeCors = config.store_cors || "";
+
   router.use(
     cors({
       origin: parseCorsOrigins(storeCors),
@@ -338,7 +348,9 @@ export default function createRouter(
     }
   );
 
-  // router.use(errorHandler());
+  storeRoutes(router, options);
+  adminRoutes(router, options);
+  router.use(errorHandler());
 
   module.exports = router;
 
