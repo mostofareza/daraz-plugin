@@ -9,13 +9,14 @@ import {
   PriceListStatus,
 } from "@medusajs/medusa";
 
+const LIMIT = 100;
 export async function getCampaignListHandler(req: Request, res: Response) {
   const priceListService: PriceListService =
     req.scope.resolve("priceListService");
 
   const { limit, offset } = req.query;
   const config: FindConfig<PriceList> = {
-    take: limit ? Number(limit) : 100,
+    take: limit ? Number(limit) : LIMIT,
     skip: offset ? Number(offset) : 0,
   };
 
@@ -30,7 +31,7 @@ export async function getCampaignListHandler(req: Request, res: Response) {
   res.json({
     price_lists,
     count,
-    offset: 0,
-    limit: 100,
+    offset: config.skip,
+    limit: config.take,
   });
 }
