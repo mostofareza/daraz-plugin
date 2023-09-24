@@ -8,18 +8,17 @@ import {
   IProductQuery,
   IRetrieveInventoryProductQuery,
 } from "interfaces/moveon-product";
-import { ProductRepository } from '@medusajs/medusa/dist/repositories/product'
+import { ProductRepository } from "@medusajs/medusa/dist/repositories/product";
 import { IRetrieveInventoryProductReturnType } from "interfaces/medusa-product";
 
- 
 class InventoryProductService extends TransactionBaseService {
-  protected readonly productRepository_: typeof ProductRepository
+  protected readonly productRepository_: typeof ProductRepository;
   private apiRequest: AxiosInstance;
   private token: string;
 
-  constructor({ productRepository}: any) {
-    super(arguments[0])
-		this.productRepository_ = productRepository
+  constructor({ productRepository }: any) {
+    super(arguments[0]);
+    this.productRepository_ = productRepository;
     this.token = "";
     this.apiRequest = this.initAxiosClient(this.token);
   }
@@ -57,7 +56,7 @@ class InventoryProductService extends TransactionBaseService {
   ): Promise<IInventoryProductInternalType> {
     const { limit, offset, attr, ...rest } = filters;
     const page = Math.floor((offset || 0) / (limit || 0)) + 1;
-    const per_page = limit || 20; 
+    const per_page = limit || 20;
 
     const decodedAttr = attr ? decodeURIComponent(attr) : undefined;
     const queryParams: Record<string, any> = { ...rest, page, per_page };
@@ -85,7 +84,6 @@ class InventoryProductService extends TransactionBaseService {
     }
   }
 
-
   /**
    * Get single product from moveon with matched link.
    * @param url - string
@@ -111,29 +109,31 @@ class InventoryProductService extends TransactionBaseService {
     }
   }
 
-
- /**
+  /**
    * Add product from moveon to medusa.
    * @param product - object
    * @return new product,
    *    error: if any
    */
-  async addProduct(product : IProductDetailsResponseData) {
+  async addProduct(product: IProductDetailsResponseData) {
     // @ts-ignore
-		const { title, description, vid, image, gallery ,profile_id} = product
-		if (!title) throw new Error("Adding a product requires a unique handle and a title")
-			const productRepository = this.activeManager_.withRepository(this.productRepository_)
-		const createdProduct = productRepository.create({
+    const { title, description, vid, image, gallery, profile_id } = product;
+    if (!title)
+      throw new Error("Adding a product requires a unique handle and a title");
+    const productRepository = this.activeManager_.withRepository(
+      this.productRepository_
+    );
+    const createdProduct = productRepository.create({
       title,
-      metadata: {"source":"moveon"}
-    })
-    try{
-      const newProduct = await productRepository.save(createdProduct)
-      return newProduct
-    }catch(error){
+      metadata: { source: "moveon" },
+    });
+    try {
+      const newProduct = await productRepository.save(createdProduct);
+      return newProduct;
+    } catch (error) {
       this.handleErrorResponse(error);
     }
-	}
+  }
 
   /**
    * Get products that has metadata source = moveon.
@@ -147,14 +147,16 @@ class InventoryProductService extends TransactionBaseService {
     const { limit, offset } = filters;
 
     const currentPage = Math.floor((offset || 0) / (limit || 0)) + 1;
-    const productsPerPage = limit || 20; 
+    const productsPerPage = limit || 20;
 
+    const productRepository = this.activeManager_.withRepository(
+      this.productRepository_
+    );
 
-	  const productRepository = this.activeManager_.withRepository(this.productRepository_)
-
-    try{      
-      const [products, totalCount] = await productRepository.createQueryBuilder("product")
-        .leftJoinAndSelect("product.variants", "variants") 
+    try {
+      const [products, totalCount] = await productRepository
+        .createQueryBuilder("product")
+        .leftJoinAndSelect("product.variants", "variants")
         .leftJoinAndSelect("variants.prices", "prices")
         .leftJoinAndSelect("variants.options", "options")
         .leftJoinAndSelect("product.images", "images")
@@ -165,17 +167,16 @@ class InventoryProductService extends TransactionBaseService {
         .take(productsPerPage) // Specify the number of records to take
         .getManyAndCount();
 
-      
       return {
         products: products,
         offset: Number(offset),
         limit: Number(productsPerPage),
         count: totalCount,
       };
-    }catch(error){
+    } catch (error) {
       this.handleErrorResponse(error);
     }
-	}
+  }
 
   // Reusable error handling function
   private handleErrorResponse(error: any): never {

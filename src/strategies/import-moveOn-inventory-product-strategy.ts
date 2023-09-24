@@ -199,15 +199,13 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
 
                       return {
                         currency_code: x.currency_code,
-                        amount: Math.round(
-                          calculateTotalPrice({
-                            mainPrice,
-                            shippingCharge,
-                            conversionRate,
-                            profitAmount,
-                            profitOperation,
-                          })
-                        ),
+                        amount: calculateTotalPrice({
+                          mainPrice,
+                          shippingCharge,
+                          conversionRate,
+                          profitAmount,
+                          profitOperation,
+                        }),
                       };
                     }),
                     metadata: {
@@ -250,26 +248,29 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   );
                 });
               } catch (error: any) {
-                // console.log(error.parameters[0],"error")
+                console.log(error);
                 if (
                   error.message.includes(
                     "duplicate key value violates unique constraint"
                   )
                 ) {
-                  throw new Error("Product already exists");
-                  // await productServiceTx.update(
-                  //   error.parameters[0],
-                  //   productCreationData
-                  // );
+                  throw new MedusaError(
+                    MedusaError.Types.DUPLICATE_ERROR,
+                    `Product already exists`,
+                    "422"
+                  );
                 } else {
-                  throw new Error("Internal server error");
-                  // Handle other database-related errors
+                  throw new Error("Internal server error1");
                 }
               }
             }
           }
-        } catch (err) {
-          throw new Error("Internal server error");
+        } catch (err: any) {
+          console.log(err);
+          if (err.code === "422") {
+            throw new Error(err.message);
+          }
+          throw new Error("Internal server error2");
         }
       }
     });
