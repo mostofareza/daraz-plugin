@@ -103,7 +103,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
       if (!store_slug) {
         throw new MedusaError(
           MedusaError.Types.NOT_FOUND,
-          `Shop slug was not found`,
+          `Store slug was not found`,
           "404"
         );
       } else {
@@ -115,14 +115,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
         const priceSettingByStore = await priceSettingRepo.findBy({
           store_slug: store_slug,
         });
-
-        const config = {
-          take: 1000,
-          skip: 0,
-          where: {
-            store_slug: store_slug,
-          },
-        };
 
         const store = await storeService.retrieve({});
 
@@ -190,15 +182,8 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                     inventory_quantity: s.stock.available,
                     allow_backorder: false,
                     manage_inventory: true,
-                    weight: weight,
+                    weight: weight ? weight * 1000 : undefined,
                     origin_country: productData.shop.country_code,
-                    // prices: [
-                    //   {
-                    //     currency_code:
-                    //       productData.shop.currency_code.toLowerCase(),
-                    //     amount: Math.round(s.price.actual),
-                    //   },
-                    // ],
                     prices: priceSettingByStore.map((x) => {
                       const mainPrice = Number(s.price.actual);
                       const shippingCharge = x.shipping_charge
@@ -214,13 +199,15 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
 
                       return {
                         currency_code: x.currency_code,
-                        amount: calculateTotalPrice({
-                          mainPrice,
-                          shippingCharge,
-                          conversionRate,
-                          profitAmount,
-                          profitOperation,
-                        }),
+                        amount: Math.round(
+                          calculateTotalPrice({
+                            mainPrice,
+                            shippingCharge,
+                            conversionRate,
+                            profitAmount,
+                            profitOperation,
+                          })
+                        ),
                       };
                     }),
                     metadata: {
