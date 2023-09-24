@@ -27,7 +27,8 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
 
   const adminRouter = Router();
   router.use(/\/admin\/((?!auth)(?!invites).*)/, adminRouter);
-  adminRouter.use(cors(adminCorsOptions));
+  router.use(cors(adminCorsOptions));
+
   adminRouter.use(authenticate());
 
   // product import

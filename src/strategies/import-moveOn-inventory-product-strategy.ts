@@ -6,12 +6,7 @@ import {
   CreateBatchJobInput,
   ProductStatus,
   ProductVariantService,
-  SalesChannelService,
-  QuerySelector,
-  SalesChannel,
   StoreService,
-  FindConfig,
-  Store,
 } from "@medusajs/medusa";
 import { ImportProductsManualBatchJob } from "strategies";
 import InventoryProductService from "services/inventory-product";
