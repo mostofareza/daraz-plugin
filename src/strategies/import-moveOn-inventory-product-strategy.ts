@@ -6,6 +6,9 @@ import {
   CreateBatchJobInput,
   ProductStatus,
   ProductVariantService,
+  SalesChannelService,
+  QuerySelector,
+  SalesChannel,
 } from "@medusajs/medusa";
 import { ImportProductsManualBatchJob } from "strategies";
 import InventoryProductService from "services/inventory-product";
@@ -13,6 +16,8 @@ import { CreateProductInput } from "@medusajs/medusa/dist/types/product";
 import { IPropType, IPropValueType, ISkuType } from "interfaces/moveon-product";
 import ProductRepository from "@medusajs/medusa/dist/repositories/product";
 import SettingsService from "services/settings";
+import { MedusaError } from "medusa-core-utils";
+import { calculateTotalPrice } from "../utils/calculate-price-convertion";
 
 type InjectedDependencies = {
   productRepository: typeof ProductRepository;
@@ -21,12 +26,13 @@ type InjectedDependencies = {
   productVariantService: ProductVariantService;
   settingService: SettingsService;
   batchJobService: BatchJobService;
+  salesChannelsService: SalesChannelService;
   manager: EntityManager;
 };
 
 class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
   protected readonly productRepository_: typeof ProductRepository;
-
+  protected readonly salesChannelsService_: SalesChannelService;
   protected readonly batchJobService_: BatchJobService;
   protected readonly productService_: ProductService;
   protected readonly productVariantService_: ProductVariantService;
@@ -45,18 +51,18 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     productService,
     inventoryProductService,
     settingService,
+    salesChannelsService,
     manager,
   }: InjectedDependencies) {
     // eslint-disable-next-line prefer-rest-params
     super(arguments[0]);
-
     this.manager_ = manager;
     this.batchJobService_ = batchJobService;
     this.productService_ = productService;
     this.inventoryProductService_ = inventoryProductService;
     this.productVariantService_ = productVariantService;
     this.settingService_ = settingService;
-
+    this.salesChannelsService_ = salesChannelsService;
     this.productRepository_ = productRepository;
   }
 
@@ -98,137 +104,191 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
         .retrieve(batchJobId)) as ImportProductsManualBatchJob;
 
       const products = batchJob.context?.products;
-      const store_slug = batchJob.context?.store_slug;
+      const store_slug = batchJob.context?.store_slug as string;
 
-      const productServiceTx =
-        this.productService_.withTransaction(transactionManager);
-      const pdSettingService =
-        this.settingService_.withTransaction(transactionManager);
+      if (!store_slug) {
+        throw new MedusaError(
+          MedusaError.Types.NOT_FOUND,
+          `Shop slug was not found`,
+          "404"
+        );
+      } else {
+        const pdSettingService =
+          this.settingService_.withTransaction(transactionManager);
+        const salesChannelService =
+          this.salesChannelsService_.withTransaction(transactionManager);
 
-      this.inventoryProductService_.setToken(
-        process.env.MOVEON_API_TOKEN || ""
-      );
-      try {
-        for (const product of products) {
-          const productDetails =
-            await this.inventoryProductService_.getProductDetailsByUrl(
-              product.link
-            );
+        const config = {
+          take: 1000,
+          skip: 0,
+          where: {
+            store_slug: store_slug,
+          },
+        };
+        const configSalesChannel: QuerySelector<SalesChannel> = {
+          is_disabled: false,
+        };
 
-          if (productDetails.code === 200) {
-            const productData = productDetails.data;
-            const optionsValues: string[][] = [];
+        const [list, count] = await pdSettingService.list(config);
+        const [channelList] = await salesChannelService.listAndCount({});
 
-            const productCreationData: CreateProductInput = {
-              title: productData.title,
-              status: ProductStatus.DRAFT,
-              thumbnail: productData.image,
-              images: productData.gallery?.map((g) => g.url) || [],
-              options:
-                productData.variation.props?.map((x) => {
-                  return {
-                    title: x.name,
-                    metadata: { values: x.values },
-                  };
-                }) || [],
-
-              variants: productData.variation.skus.map((s) => {
-                const propsValues = this.getPropsValuesFromSku(
-                  s,
-                  productData.variation.props || []
-                );
-                const propsNameStringArray =
-                  this.getValueNamesArray(propsValues);
-
-                optionsValues.push(propsNameStringArray);
-                const titleFromPropsNameString =
-                  this.getConcatenatedValueNames(propsValues);
-                let weight: undefined | number = undefined;
-                let weight_type: undefined | number = undefined;
-
-                if (productData.meta.weight) {
-                  weight = Number(productData.meta.weight);
-                }
-                if (productData.meta.weight_type) {
-                  weight_type = Number(productData.meta.length);
-                }
-
-                return {
-                  title: `${productData.title}-${titleFromPropsNameString}`,
-                  sku: String(s.id),
-                  inventory_quantity: s.stock.available,
-                  allow_backorder: false,
-                  manage_inventory: true,
-                  weight: weight,
-                  origin_country: productData.shop.country_code,
-                  prices: [
-                    {
-                      currency_code:
-                        productData.shop.currency_code.toLowerCase(),
-                      amount: Math.round(s.price.actual),
-                    },
-                  ],
-                  metadata: {
-                    weight_type,
-                    original_options: propsNameStringArray.map(
-                      (value) => value
-                    ),
-                  },
-                };
-              }),
-              description:
-                productData.description !== null
-                  ? productData.description
-                  : undefined,
-              metadata: {
-                source: "moveon",
-                ...productData.meta,
-              },
-            };
-
-            try {
-              const newProduct = await this.productService_.create(
-                productCreationData
-              );
-              const newProductWithVariant = await this.productService_.retrieve(
-                newProduct.id,
-                {
-                  relations: ["variants", "variants.options"],
-                }
+        if (count === 0) {
+          throw new MedusaError(
+            MedusaError.Types.NOT_FOUND,
+            `Settings with store_slug: ${store_slug} was not found`,
+            "404"
+          );
+        }
+        this.inventoryProductService_.setToken(
+          process.env.MOVEON_API_TOKEN || ""
+        );
+        try {
+          for (const product of products) {
+            const productDetails =
+              await this.inventoryProductService_.getProductDetailsByUrl(
+                product.link
               );
 
-              newProductWithVariant.variants.map(async (variant, index) => {
-                optionsValues[index].forEach(
-                  async (option, optionValueIndex) => {
-                    await this.productVariantService_.addOptionValue(
-                      variant.id,
-                      newProduct.options[optionValueIndex].id,
-                      option
-                    );
+            if (productDetails.code === 200) {
+              const productData = productDetails.data;
+              const optionsValues: string[][] = [];
+
+              const productCreationData: CreateProductInput = {
+                title: productData.title,
+                status: ProductStatus.PUBLISHED,
+                sales_channels:
+                  channelList.length > 0 ? [{ id: channelList[0].id }] : null,
+                thumbnail: productData.image,
+                images: productData.gallery?.map((g) => g.url) || [],
+                options:
+                  productData.variation.props?.map((x) => {
+                    return {
+                      title: x.name,
+                      metadata: { values: x.values },
+                    };
+                  }) || [],
+
+                variants: productData.variation.skus.map((s) => {
+                  const propsValues = this.getPropsValuesFromSku(
+                    s,
+                    productData.variation.props || []
+                  );
+                  const propsNameStringArray =
+                    this.getValueNamesArray(propsValues);
+
+                  optionsValues.push(propsNameStringArray);
+                  const titleFromPropsNameString =
+                    this.getConcatenatedValueNames(propsValues);
+                  let weight: undefined | number = undefined;
+                  let weight_type: undefined | number = undefined;
+
+                  if (productData.meta.weight) {
+                    weight = Number(productData.meta.weight);
                   }
+                  if (productData.meta.weight_type) {
+                    weight_type = Number(productData.meta.length);
+                  }
+
+                  return {
+                    title: `${productData.title}-${titleFromPropsNameString}`,
+                    sku: String(s.id),
+                    inventory_quantity: s.stock.available,
+                    allow_backorder: false,
+                    manage_inventory: true,
+                    weight: weight,
+                    origin_country: productData.shop.country_code,
+                    // prices: [
+                    //   {
+                    //     currency_code:
+                    //       productData.shop.currency_code.toLowerCase(),
+                    //     amount: Math.round(s.price.actual),
+                    //   },
+                    // ],
+                    prices: list.map((x) => {
+                      const mainPrice = Number(s.price.actual);
+                      const shippingCharge = x.shipping_charge
+                        ? Number(x.shipping_charge)
+                        : undefined;
+                      const conversionRate = x.conversion_rate
+                        ? Number(x.conversion_rate)
+                        : undefined;
+                      const profitAmount = x.profit_amount
+                        ? Number(x.profit_amount)
+                        : undefined;
+                      const profitOperation = x.profit_operation;
+
+                      return {
+                        currency_code: x.currency_code,
+                        amount: calculateTotalPrice({
+                          mainPrice,
+                          shippingCharge,
+                          conversionRate,
+                          profitAmount,
+                          profitOperation,
+                        }),
+                      };
+                    }),
+                    metadata: {
+                      weight_type,
+                      original_options: propsNameStringArray.map(
+                        (value) => value
+                      ),
+                    },
+                  };
+                }),
+                description:
+                  productData.description !== null
+                    ? productData.description
+                    : undefined,
+                metadata: {
+                  source: "moveon",
+                  pdId: productData.id,
+                  ...productData.meta,
+                },
+              };
+
+              try {
+                const newProduct = await this.productService_.create(
+                  productCreationData
                 );
-              });
-            } catch (error: any) {
-              // console.log(error.parameters[0],"error")
-              if (
-                error.message.includes(
-                  "duplicate key value violates unique constraint"
-                )
-              ) {
-                throw new Error("Product already exists");
-                // await productServiceTx.update(
-                //   error.parameters[0],
-                //   productCreationData
-                // );
-              } else {
-                throw new Error("Internal server error");
-                // Handle other database-related errors
+                const newProductWithVariant =
+                  await this.productService_.retrieve(newProduct.id, {
+                    relations: ["variants", "variants.options"],
+                  });
+
+                newProductWithVariant.variants.map(async (variant, index) => {
+                  optionsValues[index].forEach(
+                    async (option, optionValueIndex) => {
+                      await this.productVariantService_.addOptionValue(
+                        variant.id,
+                        newProduct.options[optionValueIndex].id,
+                        option
+                      );
+                    }
+                  );
+                });
+              } catch (error: any) {
+                // console.log(error.parameters[0],"error")
+                if (
+                  error.message.includes(
+                    "duplicate key value violates unique constraint"
+                  )
+                ) {
+                  throw new Error("Product already exists");
+                  // await productServiceTx.update(
+                  //   error.parameters[0],
+                  //   productCreationData
+                  // );
+                } else {
+                  throw new Error("Internal server error");
+                  // Handle other database-related errors
+                }
               }
             }
           }
+        } catch (err) {
+          throw new Error("Internal server error");
         }
-      } catch (err) {
-        throw new Error("Internal server error");
       }
     });
   }

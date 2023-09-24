@@ -1,7 +1,7 @@
 // main file (storeRoutes.ts)
 
 import { ConfigModule, authenticate, wrapHandler } from "@medusajs/medusa";
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import cors from "cors";
 import {
   createPriceSettingsHandler,
@@ -27,7 +27,6 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
 
   const adminRouter = Router();
   router.use(/\/admin\/((?!auth)(?!invites).*)/, adminRouter);
-
   adminRouter.use(cors(adminCorsOptions));
   adminRouter.use(authenticate());
 
@@ -35,8 +34,6 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
   router.get("/inventory-products", getProductListHandler);
   router.get("/inventory-product-details", getProductDetailsHandler);
   router.get("/retrieve-inventory-product", retrieveMoveOnInventoryHandler);
-
-  // retrieve-inventory-product
 
   // inventory product price role settings
   router.get("/admin/price-role-settings", getPriceSettingsListHandler);

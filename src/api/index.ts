@@ -1,18 +1,8 @@
-import express, { Router, Request, Response, NextFunction } from "express";
-import { getConfigFile, parseCorsOrigins } from "medusa-core-utils";
-import InventoryProductService from "services/inventory-product.js";
+import express, { Router, NextFunction } from "express";
 import { errorHandler } from "@medusajs/medusa";
-
 import bodyParser from "body-parser";
-import cors from "cors";
-import {
-  IProductQuery,
-  IRetrieveInventoryProductQuery,
-} from "interfaces/moveon-product";
-
 import storeRoutes from "./routes/store";
 import adminRoutes from "./routes/admin";
-import { appConfig } from "../utils/app-config";
 
 export default function createRouter(
   rootDirectory: string,

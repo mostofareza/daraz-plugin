@@ -12,10 +12,8 @@ export default function storeRoutes(router: Router, options: ConfigModule) {
     origin: projectConfig?.store_cors?.split(","),
     credentials: true,
   };
-
   const storeRouter = Router();
   router.use("/store", storeRouter);
-
   storeRouter.use(cors(storeCorsOptions));
 
   // Define the route using the imported handler function

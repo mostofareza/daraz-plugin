@@ -1,11 +1,8 @@
-import { Request, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import SettingsService from "../../../../services/settings";
 import { appConfig } from "../../../../utils/app-config";
 
-export const getPriceSettingsListHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const getPriceSettingsListHandler: RequestHandler = async (req, res) => {
   const InventorySettings: SettingsService =
     req.scope.resolve("settingsService");
 
@@ -48,10 +45,7 @@ export const getPriceSettingsListHandler = async (
   }
 };
 
-export const createPriceSettingsHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const createPriceSettingsHandler: RequestHandler = async (req, res) => {
   const InventorySettings: SettingsService =
     req.scope.resolve("settingsService");
   const data = req.body;
@@ -70,10 +64,7 @@ export const createPriceSettingsHandler = async (
   }
 };
 
-export const updatePriceSettingsHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const updatePriceSettingsHandler: RequestHandler = async (req, res) => {
   const id = req.params.id;
   const updatedData = req.body;
 
@@ -104,10 +95,7 @@ export const updatePriceSettingsHandler = async (
   }
 };
 
-export const deletePriceSettingsHandler = async (
-  req: Request,
-  res: Response
-) => {
+export const deletePriceSettingsHandler: RequestHandler = async (req, res) => {
   const id = req.params.id;
 
   const InventorySettings: SettingsService =
