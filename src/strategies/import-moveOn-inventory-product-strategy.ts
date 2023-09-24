@@ -8,21 +8,20 @@ import {
   ProductVariantService,
   StoreService,
 } from "@medusajs/medusa";
-import { ImportProductsManualBatchJob } from "strategies";
-import InventoryProductService from "services/inventory-product";
+import InventoryProductService from "../services/inventory-product";
 import { CreateProductInput } from "@medusajs/medusa/dist/types/product";
 import { IPropType, IPropValueType, ISkuType } from "interfaces/moveon-product";
 import ProductRepository from "@medusajs/medusa/dist/repositories/product";
-import SettingsService from "services/settings";
 import { MedusaError } from "medusa-core-utils";
 import { calculateTotalPrice } from "../utils/calculate-price-convertion";
+import { InventoryProductPriceSettings } from "../models/inventory-product-price-settings";
+import { ImportProductsManualBatchJob } from "../interfaces/batchjob";
 
 type InjectedDependencies = {
   productRepository: typeof ProductRepository;
   inventoryProductService: InventoryProductService;
   productService: ProductService;
   productVariantService: ProductVariantService;
-  settingService: SettingsService;
   batchJobService: BatchJobService;
   storeService: StoreService;
   manager: EntityManager;
@@ -35,7 +34,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
   protected readonly productService_: ProductService;
   protected readonly productVariantService_: ProductVariantService;
   protected readonly inventoryProductService_: InventoryProductService;
-  protected readonly settingService_: SettingsService;
 
   public static identifier = "moveOn-inventory-product-import-strategy";
   public static batchType = "moveOn-inventory-product-import";
@@ -48,7 +46,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     batchJobService,
     productService,
     inventoryProductService,
-    settingService,
     storeService,
     manager,
   }: InjectedDependencies) {
@@ -59,7 +56,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     this.productService_ = productService;
     this.inventoryProductService_ = inventoryProductService;
     this.productVariantService_ = productVariantService;
-    this.settingService_ = settingService;
     this.storeService_ = storeService;
     this.productRepository_ = productRepository;
   }
@@ -111,10 +107,14 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
           "404"
         );
       } else {
-        const pdSettingService =
-          this.settingService_.withTransaction(transactionManager);
         const storeService =
           this.storeService_.withTransaction(transactionManager);
+        const priceSettingRepo = this.manager_.getRepository(
+          InventoryProductPriceSettings
+        );
+        const priceSettingByStore = await priceSettingRepo.findBy({
+          store_slug: store_slug,
+        });
 
         const config = {
           take: 1000,
@@ -124,10 +124,9 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
           },
         };
 
-        const [list, count] = await pdSettingService.list(config);
         const store = await storeService.retrieve({});
 
-        if (count === 0) {
+        if (priceSettingByStore.length <= 0) {
           throw new MedusaError(
             MedusaError.Types.NOT_FOUND,
             `Settings with store_slug: ${store_slug} was not found`,
@@ -200,7 +199,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                     //     amount: Math.round(s.price.actual),
                     //   },
                     // ],
-                    prices: list.map((x) => {
+                    prices: priceSettingByStore.map((x) => {
                       const mainPrice = Number(s.price.actual);
                       const shippingCharge = x.shipping_charge
                         ? Number(x.shipping_charge)
