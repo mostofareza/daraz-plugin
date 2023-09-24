@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import SettingsService from "../../../../services/settings";
-import { DEFAULT_lIMIT } from "../../../index";
+import { appConfig } from "../../../../utils/app-config";
 
 export const getPriceSettingsListHandler = async (
   req: Request,
@@ -16,7 +16,7 @@ export const getPriceSettingsListHandler = async (
     skip: number;
     where?: { store_slug?: string };
   } = {
-    take: limit ? Number(limit) : DEFAULT_lIMIT,
+    take: limit ? Number(limit) : appConfig.limit,
     skip: offset ? Number(offset) : 0,
   };
 

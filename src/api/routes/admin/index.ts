@@ -11,6 +11,11 @@ import {
 } from "./price-settings";
 import { CreatePriceSettingValidation } from "../../../middlewares/create-price-validation-middlewares";
 import { UpdatePriceSettingValidation } from "../../../middlewares/update-price-validation-middleware";
+import {
+  getProductDetailsHandler,
+  getProductListHandler,
+  retrieveMoveOnInventoryHandler,
+} from "./moveOn-inventory";
 
 export default function adminRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -25,6 +30,13 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
 
   adminRouter.use(cors(adminCorsOptions));
   adminRouter.use(authenticate());
+
+  // product import
+  router.get("/inventory-products", getProductListHandler);
+  router.get("/inventory-product-details", getProductDetailsHandler);
+  router.get("/retrieve-inventory-product", retrieveMoveOnInventoryHandler);
+
+  // retrieve-inventory-product
 
   // inventory product price role settings
   router.get("/admin/price-role-settings", getPriceSettingsListHandler);

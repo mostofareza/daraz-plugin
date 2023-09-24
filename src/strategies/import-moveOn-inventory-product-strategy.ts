@@ -12,13 +12,14 @@ import InventoryProductService from "services/inventory-product";
 import { CreateProductInput } from "@medusajs/medusa/dist/types/product";
 import { IPropType, IPropValueType, ISkuType } from "interfaces/moveon-product";
 import ProductRepository from "@medusajs/medusa/dist/repositories/product";
+import SettingsService from "services/settings";
 
 type InjectedDependencies = {
   productRepository: typeof ProductRepository;
-
   inventoryProductService: InventoryProductService;
   productService: ProductService;
   productVariantService: ProductVariantService;
+  settingService: SettingsService;
   batchJobService: BatchJobService;
   manager: EntityManager;
 };
@@ -30,6 +31,8 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
   protected readonly productService_: ProductService;
   protected readonly productVariantService_: ProductVariantService;
   protected readonly inventoryProductService_: InventoryProductService;
+  protected readonly settingService_: SettingsService;
+
   public static identifier = "moveOn-inventory-product-import-strategy";
   public static batchType = "moveOn-inventory-product-import";
   protected readonly DEFAULT_LIMIT = 100;
@@ -41,6 +44,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     batchJobService,
     productService,
     inventoryProductService,
+    settingService,
     manager,
   }: InjectedDependencies) {
     // eslint-disable-next-line prefer-rest-params
@@ -51,6 +55,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     this.productService_ = productService;
     this.inventoryProductService_ = inventoryProductService;
     this.productVariantService_ = productVariantService;
+    this.settingService_ = settingService;
 
     this.productRepository_ = productRepository;
   }
@@ -93,9 +98,12 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
         .retrieve(batchJobId)) as ImportProductsManualBatchJob;
 
       const products = batchJob.context?.products;
+      const store_slug = batchJob.context?.store_slug;
 
       const productServiceTx =
         this.productService_.withTransaction(transactionManager);
+      const pdSettingService =
+        this.settingService_.withTransaction(transactionManager);
 
       this.inventoryProductService_.setToken(
         process.env.MOVEON_API_TOKEN || ""
@@ -207,19 +215,20 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   "duplicate key value violates unique constraint"
                 )
               ) {
-                // throw new MedusaError(MedusaError.Types.INVALID_DATA, message)
+                throw new Error("Product already exists");
                 // await productServiceTx.update(
                 //   error.parameters[0],
                 //   productCreationData
                 // );
               } else {
+                throw new Error("Internal server error");
                 // Handle other database-related errors
               }
             }
           }
         }
       } catch (err) {
-        console.log(err, "response");
+        throw new Error("Internal server error");
       }
     });
   }
