@@ -8,7 +8,7 @@ import {
   PriceSettingUpdate,
 } from "interfaces/price-settings";
 import { ErrorParser } from "../utils/error";
-import { appConfig } from "utils/app-config";
+import { appConfig } from "../utils/app-config";
 
 type InjectedDependencies = {
   manager: EntityManager;

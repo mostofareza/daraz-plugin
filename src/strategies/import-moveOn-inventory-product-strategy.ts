@@ -9,6 +9,9 @@ import {
   SalesChannelService,
   QuerySelector,
   SalesChannel,
+  StoreService,
+  FindConfig,
+  Store,
 } from "@medusajs/medusa";
 import { ImportProductsManualBatchJob } from "strategies";
 import InventoryProductService from "services/inventory-product";
@@ -26,13 +29,13 @@ type InjectedDependencies = {
   productVariantService: ProductVariantService;
   settingService: SettingsService;
   batchJobService: BatchJobService;
-  salesChannelsService: SalesChannelService;
+  storeService: StoreService;
   manager: EntityManager;
 };
 
 class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
   protected readonly productRepository_: typeof ProductRepository;
-  protected readonly salesChannelsService_: SalesChannelService;
+  protected readonly storeService_: StoreService;
   protected readonly batchJobService_: BatchJobService;
   protected readonly productService_: ProductService;
   protected readonly productVariantService_: ProductVariantService;
@@ -51,7 +54,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     productService,
     inventoryProductService,
     settingService,
-    salesChannelsService,
+    storeService,
     manager,
   }: InjectedDependencies) {
     // eslint-disable-next-line prefer-rest-params
@@ -62,7 +65,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     this.inventoryProductService_ = inventoryProductService;
     this.productVariantService_ = productVariantService;
     this.settingService_ = settingService;
-    this.salesChannelsService_ = salesChannelsService;
+    this.storeService_ = storeService;
     this.productRepository_ = productRepository;
   }
 
@@ -115,8 +118,8 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
       } else {
         const pdSettingService =
           this.settingService_.withTransaction(transactionManager);
-        const salesChannelService =
-          this.salesChannelsService_.withTransaction(transactionManager);
+        const storeService =
+          this.storeService_.withTransaction(transactionManager);
 
         const config = {
           take: 1000,
@@ -125,12 +128,9 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
             store_slug: store_slug,
           },
         };
-        const configSalesChannel: QuerySelector<SalesChannel> = {
-          is_disabled: false,
-        };
 
         const [list, count] = await pdSettingService.list(config);
-        const [channelList] = await salesChannelService.listAndCount({});
+        const store = await storeService.retrieve({});
 
         if (count === 0) {
           throw new MedusaError(
@@ -156,8 +156,9 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
               const productCreationData: CreateProductInput = {
                 title: productData.title,
                 status: ProductStatus.PUBLISHED,
-                sales_channels:
-                  channelList.length > 0 ? [{ id: channelList[0].id }] : null,
+                sales_channels: store.default_sales_channel_id
+                  ? [{ id: store.default_sales_channel_id }]
+                  : null,
                 thumbnail: productData.image,
                 images: productData.gallery?.map((g) => g.url) || [],
                 options:
