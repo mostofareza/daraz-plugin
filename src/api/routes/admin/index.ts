@@ -16,6 +16,7 @@ import {
   getProductListHandler,
   retrieveMoveOnInventoryHandler,
 } from "./moveOn-inventory";
+import { deleteAllBatchJobHandler, deleteBatchJobHandler } from "./batch-job-extended";
 
 export default function adminRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -49,4 +50,9 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
     updatePriceSettingsHandler
   );
   router.delete("/admin/price-role-settings/:id", deletePriceSettingsHandler);
+  
+  // Batch Job Extended Routes
+  router.delete("/admin/batch-job-extended/:id", deleteBatchJobHandler);
+  router.delete("/admin/batch-job-extended", deleteAllBatchJobHandler);
+
 }
