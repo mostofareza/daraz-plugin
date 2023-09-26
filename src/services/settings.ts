@@ -1,6 +1,6 @@
 import { FindConfig, TransactionBaseService } from "@medusajs/medusa";
 import { InventoryProductPriceSettings } from "../models/inventory-product-price-settings";
-import { EntityManager } from "typeorm";
+import { EntityManager, Repository } from "typeorm";
 import { isDefined, MedusaError } from "medusa-core-utils";
 import { buildQuery } from "@medusajs/medusa";
 import {
@@ -8,11 +8,18 @@ import {
   PriceSettingUpdate,
 } from "interfaces/price-settings";
 import { ErrorParser } from "../utils/error";
+import { appConfig } from "../utils/app-config";
 
 type InjectedDependencies = {
   manager: EntityManager;
   priceRoleRepository: typeof InventoryProductPriceSettings;
 };
+
+interface IConfigType {
+  skip: number;
+  take: number;
+  where?: { store_slug?: string };
+}
 
 class SettingsService extends TransactionBaseService {
   constructor(container: InjectedDependencies) {
@@ -20,11 +27,11 @@ class SettingsService extends TransactionBaseService {
   }
 
   async list(
-    config: { skip: number; take: number; where?: { store_slug?: string } } = {
+    config: IConfigType = {
       skip: 0,
-      take: 2,
+      take: appConfig.limit,
     }
-  ): Promise<any> {
+  ): Promise<[InventoryProductPriceSettings[], number]> {
     const repository = this.activeManager_.getRepository(
       InventoryProductPriceSettings
     );
