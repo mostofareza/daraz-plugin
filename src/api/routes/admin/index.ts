@@ -1,14 +1,6 @@
 // main file (storeRoutes.ts)
 
-import {
-  ConfigModule,
-  Customer,
-  TokenService,
-  User,
-  UserService,
-  authenticate,
-  wrapHandler,
-} from "@medusajs/medusa";
+import { ConfigModule, authenticate } from "@medusajs/medusa";
 import { Router } from "express";
 import cors from "cors";
 import {
@@ -24,7 +16,6 @@ import {
   getProductListHandler,
   retrieveMoveOnInventoryHandler,
 } from "./moveOn-inventory";
-import { MedusaError } from "medusa-core-utils";
 import batchJobExtended from "./batch-job-extended";
 import themeSettings from "./theme-settings";
 
