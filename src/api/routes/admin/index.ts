@@ -24,11 +24,9 @@ import {
   getProductListHandler,
   retrieveMoveOnInventoryHandler,
 } from "./moveOn-inventory";
-<<<<<<< HEAD
 import { MedusaError } from "medusa-core-utils";
-=======
-import { deleteAllBatchJobHandler, deleteBatchJobHandler } from "./batch-job-extended";
->>>>>>> stage-dev
+import batchJobExtended from "./batch-job-extended";
+import themeSettings from "./theme-settings";
 
 export default function adminRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -46,34 +44,8 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
   adminRouter.use(cors(adminCorsOptions));
   adminRouter.use(authenticate());
 
-  router.get("/admin/token", async (req, res) => {
-    const tokenService: TokenService = req.scope.resolve("tokenService");
-    const userService: UserService = req.scope.resolve("userService");
-    const user = req.user;
-
-    if (!user?.userId) {
-      throw new MedusaError(MedusaError.Types.NOT_FOUND, "User id not found");
-    }
-
-    const currentUser = await userService.retrieve(user?.userId);
-    const userTokenData = {
-      email: currentUser.email,
-      id: currentUser.id,
-      role: currentUser.role,
-    };
-
-    const token = tokenService.signToken(
-      { ...userTokenData },
-      { expiresIn: 30 }
-    );
-
-    const redirect_url = `http://localhost:3000/edit/?token=${token}`;
-
-    res.status(200).json({
-      redirect_url,
-      token,
-    });
-  });
+  // generate token for admin to customize there own theme
+  router.get("/admin/token", themeSettings.generateAuthTokenHandler);
 
   // product import
   router.get("/inventory-products", getProductListHandler);
@@ -93,9 +65,14 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
     updatePriceSettingsHandler
   );
   router.delete("/admin/price-role-settings/:id", deletePriceSettingsHandler);
-  
-  // Batch Job Extended Routes
-  router.delete("/admin/batch-job-extended/:id", deleteBatchJobHandler);
-  router.delete("/admin/batch-job-extended", deleteAllBatchJobHandler);
 
+  // Batch Job Extended Routes
+  router.delete(
+    "/admin/batch-job-extended/:id",
+    batchJobExtended.deleteBatchJobHandler
+  );
+  router.delete(
+    "/admin/batch-job-extended",
+    batchJobExtended.deleteAllBatchJobHandler
+  );
 }

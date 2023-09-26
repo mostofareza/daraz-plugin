@@ -6,6 +6,7 @@ import cors from "cors";
 import { getCampaignListHandler, getCampaignProductsHandler } from "./campain";
 import { themeCustomizabilityCheckMiddleware } from "../../../middlewares/theme-customize-ability-middleware";
 import { verifyAuthTokenMiddleware } from "../../../middlewares/verify-auth-token";
+import themeSettings from "./theme-settings";
 
 export default function storeRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -21,31 +22,7 @@ export default function storeRoutes(router: Router, options: ConfigModule) {
   storeRouter.post(
     "/token/verify",
     verifyAuthTokenMiddleware,
-    async (req, res, next) => {
-      const tokenService: TokenService = req.scope.resolve("tokenService");
-
-      try {
-        const { exp, ...rest } = req.user as any;
-
-        const newLongExpireToken = tokenService.signToken(
-          { ...rest },
-          { expiresIn: "24 days" }
-        );
-
-        res.cookie("MoveShop_admin_jwt", newLongExpireToken, {
-          httpOnly: true,
-          sameSite: "none",
-          secure: true,
-          maxAge: 60 * 60 * 10,
-        });
-
-        res.json({ message: newLongExpireToken });
-      } catch (e) {
-        console.log(e);
-        return res.send({ e });
-      }
-      // const token = await tokenService.signToken();
-    }
+    themeSettings.setCookiesForAdminHandler
   );
 
   storeRouter.get(

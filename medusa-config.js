@@ -55,21 +55,6 @@ const plugins = [
 ];
 
 const modules = {
-<<<<<<< HEAD
-  eventBus: {
-    resolve: "@medusajs/event-bus-redis",
-    options: {
-      redisUrl: REDIS_URL,
-    },
-  },
-  cacheService: {
-    resolve: "@medusajs/cache-redis",
-    options: {
-      redisUrl: REDIS_URL,
-      // ttl: 30,
-    },
-  },
-=======
   // eventBus: {
   //   resolve: "@medusajs/event-bus-redis",
   //   options: {
@@ -83,7 +68,6 @@ const modules = {
   //     // ttl: 30,
   //   }
   // },
->>>>>>> stage-dev
 };
 
 /** @type {import('@medusajs/medusa').ConfigModule["projectConfig"]} */
@@ -94,11 +78,7 @@ const projectConfig = {
   database_url: DATABASE_URL,
   admin_cors: ADMIN_CORS,
   // Uncomment the following lines to enable REDIS
-<<<<<<< HEAD
   redis_url: REDIS_URL,
-=======
-  // redis_url: REDIS_URL
->>>>>>> stage-dev
 };
 
 /** @type {import('@medusajs/medusa').ConfigModule} */

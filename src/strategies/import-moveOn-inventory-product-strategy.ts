@@ -11,12 +11,20 @@ import {
 } from "@medusajs/medusa";
 import InventoryProductService from "../services/inventory-product";
 import { CreateProductInput } from "@medusajs/medusa/dist/types/product";
-import { IProductDetailsResponseData, IPropType, IPropValueType, ISkuType } from "interfaces/moveon-product";
+import {
+  IProductDetailsResponseData,
+  IPropType,
+  IPropValueType,
+  ISkuType,
+} from "interfaces/moveon-product";
 import ProductRepository from "@medusajs/medusa/dist/repositories/product";
 import { MedusaError } from "medusa-core-utils";
 import { calculateTotalPrice } from "../utils/calculate-price-convertion";
 import { InventoryProductPriceSettings } from "../models/inventory-product-price-settings";
-import { IProcessImportProductData, ImportProductsManualBatchJob } from "../interfaces/batchjob";
+import {
+  IProcessImportProductData,
+  ImportProductsManualBatchJob,
+} from "../interfaces/batchjob";
 
 type InjectedDependencies = {
   productRepository: typeof ProductRepository;
@@ -65,22 +73,22 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     this.salesChannelService_ = salesChannelService;
   }
 
-   /**
+  /**
    * Create a description of a row on which the error occurred and throw a Medusa error.
    *
    * @param row - Parsed CSV row data
    * @param errorDescription - Concrete error
    */
   protected static throwDescriptiveError(
-    failedProductImports: IProcessImportProductData[] = [],
+    failedProductImports: IProcessImportProductData[] = []
   ): never {
-    const errorMessages = failedProductImports.map((product) => `${product.title}\n${product.link}\n${product.message}`);
+    const errorMessages = failedProductImports.map(
+      (product) => `${product.title}\n${product.link}\n${product.message}`
+    );
     const message = `${errorMessages}`;
-    
+
     throw new MedusaError(MedusaError.Types.INVALID_DATA, message);
   }
-  
-  
 
   async prepareBatchJobForProcessing(
     batchJob: CreateBatchJobInput,
@@ -117,9 +125,10 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     return await this.atomicPhase_(async (transactionManager) => {
       const batchServiceTx =
         this.batchJobService_.withTransaction(transactionManager);
-        
-      const batchJob = (await batchServiceTx
-        .retrieve(batchJobId)) as ImportProductsManualBatchJob;
+
+      const batchJob = (await batchServiceTx.retrieve(
+        batchJobId
+      )) as ImportProductsManualBatchJob;
 
       const products = batchJob.context?.products;
       const store_slug = batchJob.context?.store_slug as string;
@@ -161,10 +170,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
               await this.inventoryProductService_.getProductDetailsByUrl(
                 product.link
               );
-            
-            if(productDetails.code!==200){
-              failedProductImports.push({...product, message: "Product not found"})
-            }
 
             if (productDetails.code === 200) {
               const productData = productDetails.data;
@@ -280,17 +285,19 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   );
                 });
               } catch (error: any) {
-<<<<<<< HEAD
-=======
-                failedProductImports.push({...product, message: "Product already exist"})
+                failedProductImports.push({
+                  ...product,
+                  message: "Product already exist",
+                });
                 console.log(error);
->>>>>>> stage-dev
                 if (
                   error.message.includes(
                     "duplicate key value violates unique constraint"
                   )
                 ) {
-                  ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
+                  ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(
+                    failedProductImports
+                  );
                 } else {
                   throw new MedusaError(
                     MedusaError.Types.NOT_FOUND,
@@ -303,7 +310,9 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
           }
         } catch (err: any) {
           console.log(err);
-          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
+          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(
+            failedProductImports
+          );
         }
       }
     });
