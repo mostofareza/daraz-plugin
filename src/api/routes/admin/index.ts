@@ -1,6 +1,14 @@
 // main file (storeRoutes.ts)
 
-import { ConfigModule, authenticate, wrapHandler } from "@medusajs/medusa";
+import {
+  ConfigModule,
+  Customer,
+  TokenService,
+  User,
+  UserService,
+  authenticate,
+  wrapHandler,
+} from "@medusajs/medusa";
 import { Router } from "express";
 import cors from "cors";
 import {
@@ -16,6 +24,7 @@ import {
   getProductListHandler,
   retrieveMoveOnInventoryHandler,
 } from "./moveOn-inventory";
+import { MedusaError } from "medusa-core-utils";
 
 export default function adminRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -26,10 +35,41 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
   };
 
   const adminRouter = Router();
+  const adminStoreRouter = Router();
   router.use(/\/admin\/((?!auth)(?!invites).*)/, adminRouter);
+  adminStoreRouter.use(cors(adminCorsOptions));
   router.use(cors(adminCorsOptions));
   adminRouter.use(cors(adminCorsOptions));
   adminRouter.use(authenticate());
+
+  router.get("/admin/token", async (req, res) => {
+    const tokenService: TokenService = req.scope.resolve("tokenService");
+    const userService: UserService = req.scope.resolve("userService");
+    const user = req.user;
+
+    if (!user?.userId) {
+      throw new MedusaError(MedusaError.Types.NOT_FOUND, "User id not found");
+    }
+
+    const currentUser = await userService.retrieve(user?.userId);
+    const userTokenData = {
+      email: currentUser.email,
+      id: currentUser.id,
+      role: currentUser.role,
+    };
+
+    const token = tokenService.signToken(
+      { ...userTokenData },
+      { expiresIn: 30 }
+    );
+
+    const redirect_url = `http://localhost:3000/edit/?token=${token}`;
+
+    res.status(200).json({
+      redirect_url,
+      token,
+    });
+  });
 
   // product import
   router.get("/inventory-products", getProductListHandler);

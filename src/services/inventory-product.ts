@@ -64,6 +64,9 @@ class InventoryProductService extends TransactionBaseService {
       queryParams.attr = decodedAttr;
     }
 
+    const productRepository = this.activeManager_.withRepository(
+      this.productRepository_
+    );
     try {
       const response = await this.apiRequest.get<IInventoryResponseType>(
         "/v1/products",
@@ -72,8 +75,26 @@ class InventoryProductService extends TransactionBaseService {
         }
       );
       const resData = response.data;
+
+      // Use Promise.all to execute the isImported queries concurrently
+      // const modifyProductsPromises = resData.data.map(async (x) => {
+      //   const isImported =
+      //     (await productRepository
+      //       .createQueryBuilder("product")
+      //       .where("product.metadata->>'link' = :link", { link: x.link })
+      //       .getCount()) > 0;
+      //   return {
+      //     ...x,
+      //     isImported,
+      //   };
+      // });
+
+      // // Wait for all the isImported queries to complete
+      // const modifiedProducts = await Promise.all(modifyProductsPromises);
+
       return {
-        products: resData?.data ?? [],
+        // @ts-ignore
+        products: resData.data ?? [],
         filters: resData?.filters ?? null,
         offset: Number(offset),
         limit: Number(limit),
@@ -163,11 +184,12 @@ class InventoryProductService extends TransactionBaseService {
         .leftJoinAndSelect("product.tags", "tags")
         .leftJoinAndSelect("product.collection", "collection")
         .where(`product.metadata->>'source' = 'moveon'`)
-        .skip((currentPage - 1) * productsPerPage) // Calculate how many records to skip
-        .take(productsPerPage) // Specify the number of records to take
+        .skip((currentPage - 1) * productsPerPage)
+        .take(productsPerPage)
         .getManyAndCount();
 
       return {
+        // @ts-ignore
         products: products,
         offset: Number(offset),
         limit: Number(productsPerPage),

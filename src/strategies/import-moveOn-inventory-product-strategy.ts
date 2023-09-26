@@ -7,6 +7,7 @@ import {
   ProductStatus,
   ProductVariantService,
   StoreService,
+  SalesChannelService,
 } from "@medusajs/medusa";
 import InventoryProductService from "../services/inventory-product";
 import { CreateProductInput } from "@medusajs/medusa/dist/types/product";
@@ -24,6 +25,7 @@ type InjectedDependencies = {
   productVariantService: ProductVariantService;
   batchJobService: BatchJobService;
   storeService: StoreService;
+  salesChannelService: SalesChannelService;
   manager: EntityManager;
 };
 
@@ -34,6 +36,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
   protected readonly productService_: ProductService;
   protected readonly productVariantService_: ProductVariantService;
   protected readonly inventoryProductService_: InventoryProductService;
+  protected readonly salesChannelService_: SalesChannelService;
 
   public static identifier = "moveOn-inventory-product-import-strategy";
   public static batchType = "moveOn-inventory-product-import";
@@ -47,6 +50,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     productService,
     inventoryProductService,
     storeService,
+    salesChannelService,
     manager,
   }: InjectedDependencies) {
     // eslint-disable-next-line prefer-rest-params
@@ -58,6 +62,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     this.productVariantService_ = productVariantService;
     this.storeService_ = storeService;
     this.productRepository_ = productRepository;
+    this.salesChannelService_ = salesChannelService;
   }
 
   async prepareBatchJobForProcessing(
@@ -109,6 +114,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
       } else {
         const storeService =
           this.storeService_.withTransaction(transactionManager);
+
         const priceSettingRepo = this.manager_.getRepository(
           InventoryProductPriceSettings
         );
@@ -178,11 +184,11 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
 
                   return {
                     title: `${productData.title}-${titleFromPropsNameString}`,
-                    sku: String(s.id),
+                    sku: `${productData.id}_sku:${String(s.id)}`,
                     inventory_quantity: s.stock.available,
                     allow_backorder: false,
                     manage_inventory: true,
-                    weight: weight ? weight * 1000 : undefined,
+                    weight: weight ? Math.round(weight * 1000) : undefined,
                     origin_country: productData.shop.country_code,
                     prices: priceSettingByStore.map((x) => {
                       const mainPrice = Number(s.price.actual);
@@ -222,7 +228,8 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                     : undefined,
                 metadata: {
                   source: "moveon",
-                  pdId: productData.id,
+                  vid: productData.vid,
+                  link: productData.link,
                   ...productData.meta,
                 },
               };
@@ -248,7 +255,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   );
                 });
               } catch (error: any) {
-                console.log(error);
                 if (
                   error.message.includes(
                     "duplicate key value violates unique constraint"
