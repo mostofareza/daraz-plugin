@@ -155,7 +155,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
               await this.inventoryProductService_.getProductDetailsByUrl(
                 product.link
               );
-
             
             if(productDetails.code!==200){
               failedProductImports.push({...product, message: "Product not found"})
@@ -283,18 +282,18 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                 ) {
                   ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
                 } else {
-                  throw new Error("Internal server error1");
+                  throw new MedusaError(
+                    MedusaError.Types.NOT_FOUND,
+                    `Product not found`,
+                    "404"
+                  );
                 }
               }
             }
           }
         } catch (err: any) {
           console.log(err);
-          if (err.code === "422") {
-            throw new Error(err.message);
-          }
-          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
-        }
+          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)        }
       }
     });
   }
