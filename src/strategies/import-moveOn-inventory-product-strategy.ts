@@ -7,15 +7,24 @@ import {
   ProductStatus,
   ProductVariantService,
   StoreService,
+  SalesChannelService,
 } from "@medusajs/medusa";
 import InventoryProductService from "../services/inventory-product";
 import { CreateProductInput } from "@medusajs/medusa/dist/types/product";
-import { IProductDetailsResponseData, IPropType, IPropValueType, ISkuType } from "interfaces/moveon-product";
+import {
+  IProductDetailsResponseData,
+  IPropType,
+  IPropValueType,
+  ISkuType,
+} from "interfaces/moveon-product";
 import ProductRepository from "@medusajs/medusa/dist/repositories/product";
 import { MedusaError } from "medusa-core-utils";
 import { calculateTotalPrice } from "../utils/calculate-price-convertion";
 import { InventoryProductPriceSettings } from "../models/inventory-product-price-settings";
-import { IProcessImportProductData, ImportProductsManualBatchJob } from "../interfaces/batchjob";
+import {
+  IProcessImportProductData,
+  ImportProductsManualBatchJob,
+} from "../interfaces/batchjob";
 
 type InjectedDependencies = {
   productRepository: typeof ProductRepository;
@@ -24,6 +33,7 @@ type InjectedDependencies = {
   productVariantService: ProductVariantService;
   batchJobService: BatchJobService;
   storeService: StoreService;
+  salesChannelService: SalesChannelService;
   manager: EntityManager;
 };
 
@@ -34,6 +44,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
   protected readonly productService_: ProductService;
   protected readonly productVariantService_: ProductVariantService;
   protected readonly inventoryProductService_: InventoryProductService;
+  protected readonly salesChannelService_: SalesChannelService;
 
   public static identifier = "moveOn-inventory-product-import-strategy";
   public static batchType = "moveOn-inventory-product-import";
@@ -47,6 +58,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     productService,
     inventoryProductService,
     storeService,
+    salesChannelService,
     manager,
   }: InjectedDependencies) {
     // eslint-disable-next-line prefer-rest-params
@@ -58,24 +70,25 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     this.productVariantService_ = productVariantService;
     this.storeService_ = storeService;
     this.productRepository_ = productRepository;
+    this.salesChannelService_ = salesChannelService;
   }
 
-   /**
+  /**
    * Create a description of a row on which the error occurred and throw a Medusa error.
    *
    * @param row - Parsed CSV row data
    * @param errorDescription - Concrete error
    */
   protected static throwDescriptiveError(
-    failedProductImports: IProcessImportProductData[] = [],
+    failedProductImports: IProcessImportProductData[] = []
   ): never {
-    const errorMessages = failedProductImports.map((product) => `${product.title}\n${product.link}\n${product.message}`);
+    const errorMessages = failedProductImports.map(
+      (product) => `${product.title}\n${product.link}\n${product.message}`
+    );
     const message = `${errorMessages}`;
-    
+
     throw new MedusaError(MedusaError.Types.INVALID_DATA, message);
   }
-  
-  
 
   async prepareBatchJobForProcessing(
     batchJob: CreateBatchJobInput,
@@ -112,9 +125,10 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     return await this.atomicPhase_(async (transactionManager) => {
       const batchServiceTx =
         this.batchJobService_.withTransaction(transactionManager);
-        
-      const batchJob = (await batchServiceTx
-        .retrieve(batchJobId)) as ImportProductsManualBatchJob;
+
+      const batchJob = (await batchServiceTx.retrieve(
+        batchJobId
+      )) as ImportProductsManualBatchJob;
 
       const products = batchJob.context?.products;
       const store_slug = batchJob.context?.store_slug as string;
@@ -130,6 +144,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
       } else {
         const storeService =
           this.storeService_.withTransaction(transactionManager);
+
         const priceSettingRepo = this.manager_.getRepository(
           InventoryProductPriceSettings
         );
@@ -155,10 +170,6 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
               await this.inventoryProductService_.getProductDetailsByUrl(
                 product.link
               );
-            
-            if(productDetails.code!==200){
-              failedProductImports.push({...product, message: "Product not found"})
-            }
 
             if (productDetails.code === 200) {
               const productData = productDetails.data;
@@ -203,7 +214,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
 
                   return {
                     title: `${productData.title}-${titleFromPropsNameString}`,
-                    sku: String(s.id),
+                    sku: `${productData.id}_sku:${String(s.id)}`,
                     inventory_quantity: s.stock.available,
                     allow_backorder: false,
                     manage_inventory: true,
@@ -247,7 +258,8 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                     : undefined,
                 metadata: {
                   source: "moveon",
-                  pdId: productData.id,
+                  vid: productData.vid,
+                  link: productData.link,
                   ...productData.meta,
                 },
               };
@@ -273,14 +285,19 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   );
                 });
               } catch (error: any) {
-                failedProductImports.push({...product, message: "Product already exist"})
+                failedProductImports.push({
+                  ...product,
+                  message: "Product already exist",
+                });
                 console.log(error);
                 if (
                   error.message.includes(
                     "duplicate key value violates unique constraint"
                   )
                 ) {
-                  ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
+                  ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(
+                    failedProductImports
+                  );
                 } else {
                   throw new MedusaError(
                     MedusaError.Types.NOT_FOUND,
@@ -293,7 +310,9 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
           }
         } catch (err: any) {
           console.log(err);
-          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
+          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(
+            failedProductImports
+          );
         }
       }
     });

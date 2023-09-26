@@ -1,9 +1,12 @@
 // main file (storeRoutes.ts)
 
-import { ConfigModule } from "@medusajs/medusa";
+import { ConfigModule, TokenService } from "@medusajs/medusa";
 import { Router } from "express";
 import cors from "cors";
 import { getCampaignListHandler, getCampaignProductsHandler } from "./campain";
+import { themeCustomizabilityCheckMiddleware } from "../../../middlewares/theme-customize-ability-middleware";
+import { verifyAuthTokenMiddleware } from "../../../middlewares/verify-auth-token";
+import themeSettings from "./theme-settings";
 
 export default function storeRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -15,6 +18,20 @@ export default function storeRoutes(router: Router, options: ConfigModule) {
   const storeRouter = Router();
   router.use("/store", storeRouter);
   storeRouter.use(cors(storeCorsOptions));
+
+  storeRouter.post(
+    "/token/verify",
+    verifyAuthTokenMiddleware,
+    themeSettings.setCookiesForAdminHandler
+  );
+
+  storeRouter.get(
+    "/theme",
+    themeCustomizabilityCheckMiddleware,
+    async (req, res, next) => {
+      res.send({ success: req.user });
+    }
+  );
 
   // Define the route using the imported handler function
   storeRouter.get("/campaign-list", getCampaignListHandler);
