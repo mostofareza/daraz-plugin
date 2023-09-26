@@ -293,7 +293,8 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
           }
         } catch (err: any) {
           console.log(err);
-          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)        }
+          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
+        }
       }
     });
   }
