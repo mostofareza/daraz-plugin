@@ -2,7 +2,7 @@ import { TokenService } from "@medusajs/medusa";
 import { RequestHandler } from "express";
 import { MedusaError } from "medusa-core-utils";
 
-export const themeCustomizabilityCheckMiddleware: RequestHandler = async (
+export const checkThemeCustomizabilityMiddleware: RequestHandler = async (
   req,
   res,
   next

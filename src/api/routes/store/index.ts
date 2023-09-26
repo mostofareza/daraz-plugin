@@ -4,7 +4,7 @@ import { ConfigModule, TokenService } from "@medusajs/medusa";
 import { Router } from "express";
 import cors from "cors";
 import { getCampaignListHandler, getCampaignProductsHandler } from "./campain";
-import { themeCustomizabilityCheckMiddleware } from "../../../middlewares/theme-customize-ability-middleware";
+import { checkThemeCustomizabilityMiddleware } from "../../../middlewares/theme-customize-ability-middleware";
 import { verifyAuthTokenMiddleware } from "../../../middlewares/verify-auth-token";
 import themeSettings from "./theme-settings";
 
@@ -27,7 +27,7 @@ export default function storeRoutes(router: Router, options: ConfigModule) {
 
   storeRouter.get(
     "/theme",
-    themeCustomizabilityCheckMiddleware,
+    checkThemeCustomizabilityMiddleware,
     async (req, res, next) => {
       res.send({ success: req.user });
     }
