@@ -22,17 +22,21 @@ export const calculateTotalPrice = (
     conversionRate = 1,
   } = settings;
 
-  let totalPrice: number;
+  let totalPrice: number = mainPrice;
+
+  if (conversionRate !== 1 && conversionRate > 1) {
+    totalPrice *= conversionRate;
+  }
 
   switch (profitOperation) {
     case ProfitOperation.ADDITION:
-      totalPrice = mainPrice + profitAmount;
+      totalPrice = totalPrice + profitAmount;
       break;
     case ProfitOperation.MULTIPLICATION:
-      totalPrice = mainPrice * profitAmount;
+      totalPrice = totalPrice * profitAmount;
       break;
     case ProfitOperation.PERCENT:
-      totalPrice = mainPrice + (mainPrice * profitAmount) / 100;
+      totalPrice = totalPrice + (totalPrice * profitAmount) / 100;
       break;
     default:
       throw new Error("Invalid profit operation");
@@ -40,10 +44,6 @@ export const calculateTotalPrice = (
 
   totalPrice += shippingCharge;
 
-  if (conversionRate !== 1 && conversionRate > 1) {
-    totalPrice *= conversionRate;
-  }
-
   // Round the total price to 2 decimal places
-  return parseFloat(totalPrice.toFixed(2));
+  return Math.round(parseFloat(totalPrice.toFixed(2)));
 };
