@@ -11,12 +11,12 @@ import {
 } from "@medusajs/medusa";
 import InventoryProductService from "../services/inventory-product";
 import { CreateProductInput } from "@medusajs/medusa/dist/types/product";
-import { IPropType, IPropValueType, ISkuType } from "interfaces/moveon-product";
+import { IProductDetailsResponseData, IPropType, IPropValueType, ISkuType } from "interfaces/moveon-product";
 import ProductRepository from "@medusajs/medusa/dist/repositories/product";
 import { MedusaError } from "medusa-core-utils";
 import { calculateTotalPrice } from "../utils/calculate-price-convertion";
 import { InventoryProductPriceSettings } from "../models/inventory-product-price-settings";
-import { ImportProductsManualBatchJob } from "../interfaces/batchjob";
+import { IProcessImportProductData, ImportProductsManualBatchJob } from "../interfaces/batchjob";
 
 type InjectedDependencies = {
   productRepository: typeof ProductRepository;
@@ -65,6 +65,23 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
     this.salesChannelService_ = salesChannelService;
   }
 
+   /**
+   * Create a description of a row on which the error occurred and throw a Medusa error.
+   *
+   * @param row - Parsed CSV row data
+   * @param errorDescription - Concrete error
+   */
+  protected static throwDescriptiveError(
+    failedProductImports: IProcessImportProductData[] = [],
+  ): never {
+    const errorMessages = failedProductImports.map((product) => `${product.title}\n${product.link}\n${product.message}`);
+    const message = `${errorMessages}`;
+    
+    throw new MedusaError(MedusaError.Types.INVALID_DATA, message);
+  }
+  
+  
+
   async prepareBatchJobForProcessing(
     batchJob: CreateBatchJobInput,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -98,17 +115,21 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
 
   async processJob(batchJobId: string): Promise<void> {
     return await this.atomicPhase_(async (transactionManager) => {
-      let batchJob = (await this.batchJobService_
-        .withTransaction(transactionManager)
+      const batchServiceTx =
+        this.batchJobService_.withTransaction(transactionManager);
+        
+      const batchJob = (await batchServiceTx
         .retrieve(batchJobId)) as ImportProductsManualBatchJob;
 
       const products = batchJob.context?.products;
       const store_slug = batchJob.context?.store_slug as string;
 
+      let failedProductImports: IProcessImportProductData[] = [];
+
       if (!store_slug) {
         throw new MedusaError(
           MedusaError.Types.NOT_FOUND,
-          `Store slug was not found`,
+          `Store slug not found`,
           "404"
         );
       } else {
@@ -127,7 +148,7 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
         if (priceSettingByStore.length <= 0) {
           throw new MedusaError(
             MedusaError.Types.NOT_FOUND,
-            `Settings with store_slug: ${store_slug} was not found`,
+            `Price role settings with store: ${store_slug} not found`,
             "404"
           );
         }
@@ -140,6 +161,10 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
               await this.inventoryProductService_.getProductDetailsByUrl(
                 product.link
               );
+            
+            if(productDetails.code!==200){
+              failedProductImports.push({...product, message: "Product not found"})
+            }
 
             if (productDetails.code === 200) {
               const productData = productDetails.data;
@@ -255,28 +280,30 @@ class ImportMoveOnInventoryProductsStrategy extends AbstractBatchJobStrategy {
                   );
                 });
               } catch (error: any) {
+<<<<<<< HEAD
+=======
+                failedProductImports.push({...product, message: "Product already exist"})
+                console.log(error);
+>>>>>>> stage-dev
                 if (
                   error.message.includes(
                     "duplicate key value violates unique constraint"
                   )
                 ) {
-                  throw new MedusaError(
-                    MedusaError.Types.DUPLICATE_ERROR,
-                    `Product already exists`,
-                    "422"
-                  );
+                  ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
                 } else {
-                  throw new Error("Internal server error1");
+                  throw new MedusaError(
+                    MedusaError.Types.NOT_FOUND,
+                    `Product not found`,
+                    "404"
+                  );
                 }
               }
             }
           }
         } catch (err: any) {
           console.log(err);
-          if (err.code === "422") {
-            throw new Error(err.message);
-          }
-          throw new Error("Internal server error2");
+          ImportMoveOnInventoryProductsStrategy.throwDescriptiveError(failedProductImports)
         }
       }
     });
