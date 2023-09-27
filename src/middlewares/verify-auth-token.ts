@@ -25,7 +25,6 @@ export const verifyAuthTokenMiddleware: RequestHandler = async (
     req.user = tokenVerified;
     next();
   } catch (error: any) {
-    console.log(error);
     if (error && error.name && error.name === "TokenExpiredError") {
       res.status(403).send("Unauthorized access, token has been expired");
     } else {
