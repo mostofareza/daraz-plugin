@@ -1,10 +1,12 @@
-import { RequestHandler } from "express";
+import { Request, Response } from "express";
 import BatchJobExtendedService from "services/batch-job-extended";
 
-export const deleteBatchJobHandler: RequestHandler = async (req, res) => {
+export default async (req: Request, res: Response) => {
   const id = req.params.id;
 
-  const batchJobExtendedService: BatchJobExtendedService = req.scope.resolve("batchJobExtendedService")
+  const batchJobExtendedService: BatchJobExtendedService = req.scope.resolve(
+    "batchJobExtendedService"
+  );
 
   try {
     const response = await batchJobExtendedService.delete(id);
@@ -19,5 +21,3 @@ export const deleteBatchJobHandler: RequestHandler = async (req, res) => {
     });
   }
 };
-
-

@@ -1,49 +1,11 @@
 import { Request, RequestHandler } from "express";
-import {
-  FilterablePriceListProps,
-  FindConfig,
-  PriceList,
-  PriceListService,
-  PriceListStatus,
-  Product,
-} from "@medusajs/medusa";
+import { FindConfig, PriceListService, Product } from "@medusajs/medusa";
 import { FilterableProductProps } from "@medusajs/medusa/dist/types/product";
-
-const LIMIT = 100;
 
 const getPriceListService = (req: Request): PriceListService =>
   req.scope.resolve("priceListService");
 
-// Handler for getting a list of campaigns
-export const getCampaignListHandler: RequestHandler = async (
-  req,
-  res,
-  next
-) => {
-  try {
-    const { limit, offset } = req.query;
-    const config: FindConfig<PriceList> = {
-      take: limit ? Number(limit) : LIMIT,
-      skip: offset ? Number(offset) : 0,
-    };
-
-    const filter: FilterablePriceListProps = {
-      status: [PriceListStatus.ACTIVE],
-    };
-
-    const priceListService = getPriceListService(req);
-    const [priceLists, count] = await priceListService.listAndCount(
-      filter,
-      config
-    );
-
-    res.json({ priceLists, count, offset: config.skip, limit: config.take });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Handler for getting products related to a campaign
+const LIMIT = 100;
 export const getCampaignProductsHandler: RequestHandler = async (
   req,
   res,

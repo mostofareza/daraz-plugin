@@ -1,4 +1,4 @@
-import { deleteBatchJobHandler } from "./delete";
-import { deleteAllBatchJobHandler } from "./delete-all";
+import removeById from "./delete";
+import removeAll from "./delete-all";
 
-export default { deleteAllBatchJobHandler, deleteBatchJobHandler };
+export default { removeAll, removeById };

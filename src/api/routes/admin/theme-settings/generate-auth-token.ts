@@ -1,9 +1,9 @@
 import { TokenService, UserService } from "@medusajs/medusa";
-import { RequestHandler } from "express";
+import { Request, Response } from "express";
 import { MedusaError } from "medusa-core-utils";
 import { appConfig } from "../../../../utils/app-config";
 
-export const generateAuthTokenHandler: RequestHandler = async (req, res) => {
+export default async (req: Request, res: Response) => {
   const tokenService: TokenService = req.scope.resolve("tokenService");
   const userService: UserService = req.scope.resolve("userService");
   const user = req.user;

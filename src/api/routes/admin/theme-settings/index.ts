@@ -1,3 +1,3 @@
-import { generateAuthTokenHandler } from "./generate-auth-token";
+import generateAuthTokenHandler from "./generate-auth-token";
 
 export default { generateAuthTokenHandler };

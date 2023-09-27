@@ -1,19 +1,21 @@
 import { Request, Response } from "express";
-import BatchJobExtendedService from "services/batch-job-extended";
+import SettingsService from "../../../../services/settings";
 
 export default async (req: Request, res: Response) => {
-  const batchJobExtendedService: BatchJobExtendedService = req.scope.resolve(
-    "batchJobExtendedService"
-  );
+  const id = req.params.id;
+
+  const InventorySettings: SettingsService =
+    req.scope.resolve("settingsService");
 
   try {
-    const response = await batchJobExtendedService.deleteAll();
+    const response = await InventorySettings.delete(id);
     res.status(200).json({
       result: response,
       statusCode: 200,
-      message: "successfully deleted all batch jobs",
+      message: "successfully deleted",
     });
   } catch (error: any) {
+    console.log(error);
     res.status(error.status || Number(error.code) || 500).json({
       error: error,
     });

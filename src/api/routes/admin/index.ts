@@ -1,23 +1,12 @@
-// main file (storeRoutes.ts)
-
 import { ConfigModule, authenticate } from "@medusajs/medusa";
 import { Router } from "express";
 import cors from "cors";
-import {
-  createPriceSettingsHandler,
-  deletePriceSettingsHandler,
-  getPriceSettingsListHandler,
-  updatePriceSettingsHandler,
-} from "./price-settings";
 import { CreatePriceSettingValidation } from "../../../middlewares/create-price-validation-middlewares";
 import { UpdatePriceSettingValidation } from "../../../middlewares/update-price-validation-middleware";
-import {
-  getProductDetailsHandler,
-  getProductListHandler,
-  retrieveMoveOnInventoryHandler,
-} from "./moveOn-inventory";
 import batchJobExtended from "./batch-job-extended";
 import themeSettings from "./theme-settings";
+import moveOnInventory from "./moveOn-inventory";
+import priceSettings from "./price-settings";
 
 export default function adminRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -41,41 +30,38 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
     themeSettings.generateAuthTokenHandler
   );
 
-  // product import
-  router.get("/admin/api/v1/inventory-products", getProductListHandler);
+  // MoveOn inventory product
+  router.get(
+    "/admin/api/v1/inventory-products",
+    moveOnInventory.inventoryProducts
+  );
   router.get(
     "/admin/api/v1/inventory-product-details",
-    getProductDetailsHandler
+    moveOnInventory.details
   );
   router.get(
     "/admin/api/v1/retrieve-inventory-product",
-    retrieveMoveOnInventoryHandler
+    moveOnInventory.importedProducts
   );
 
   // inventory product price role settings
-  router.get("/admin/api/v1/price-role-settings", getPriceSettingsListHandler);
+  router.get("/admin/api/v1/price-role-settings", priceSettings.list);
   router.post(
     "/admin/api/v1/price-role-settings",
     CreatePriceSettingValidation,
-    createPriceSettingsHandler
+    priceSettings.create
   );
   router.patch(
     "/admin/api/v1/price-role-settings/:id",
     UpdatePriceSettingValidation,
-    updatePriceSettingsHandler
+    priceSettings.update
   );
-  router.delete(
-    "/admin/api/v1/price-role-settings/:id",
-    deletePriceSettingsHandler
-  );
+  router.delete("/admin/api/v1/price-role-settings/:id", priceSettings.remove);
 
   // Batch Job Extended Routes
   router.delete(
     "/admin/api/v1/batch-job-extended/:id",
-    batchJobExtended.deleteBatchJobHandler
+    batchJobExtended.removeById
   );
-  router.delete(
-    "/admin/api/v1/batch-job-extended",
-    batchJobExtended.deleteAllBatchJobHandler
-  );
+  router.delete("/admin/api/v1/batch-job-extended", batchJobExtended.removeAll);
 }
