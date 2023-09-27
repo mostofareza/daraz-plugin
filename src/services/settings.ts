@@ -172,7 +172,12 @@ class SettingsService extends TransactionBaseService {
 
   // Reusable error handling function
   private handleErrorResponse(error: any): never {
-    if (error.response) {
+    if (error.type === "not_found") {
+      throw {
+        status: 404,
+        data: error,
+      };
+    } else if (error.response) {
       throw {
         status: error.response.status,
         data: error,

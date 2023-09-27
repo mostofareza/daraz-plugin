@@ -1,10 +1,5 @@
-import express, {
-  Router,
-  NextFunction,
-  RequestHandler,
-  Request,
-} from "express";
-import { TokenService, errorHandler } from "@medusajs/medusa";
+import express, { Router } from "express";
+import { errorHandler } from "@medusajs/medusa";
 import bodyParser from "body-parser";
 import storeRoutes from "./routes/store";
 import adminRoutes from "./routes/admin";
