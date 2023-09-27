@@ -11,19 +11,13 @@ export const checkThemeCustomizabilityMiddleware: RequestHandler = async (
   const token = req.cookies.MoveShop_admin_jwt;
 
   if (!token) {
-    throw new MedusaError(
-      MedusaError.Types.UNAUTHORIZED,
-      `Unauthorized access, token is required`
-    );
+    res.status(403).send("Unauthorized access, token is required");
   }
 
   try {
     const tokenVerified = tokenService.verifyToken(token);
     if (!tokenVerified) {
-      throw new MedusaError(
-        MedusaError.Types.UNAUTHORIZED,
-        `Unauthorized access, token is required`
-      );
+      res.status(403).send("Unauthorized access, token is required");
     } else {
       req.user = tokenVerified;
     }

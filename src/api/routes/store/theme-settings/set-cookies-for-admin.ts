@@ -14,14 +14,14 @@ export const setCookiesForAdminHandler: RequestHandler = async (
 
     const newLongExpireToken = tokenService.signToken(
       { ...rest },
-      { expiresIn: appConfig.moveShop_admin_jwt_cookies_expire }
+      { expiresIn: appConfig.jwt_long_expire }
     );
 
     res.cookie(appConfig.moveShop_admin_jwt_cookies_key, newLongExpireToken, {
       httpOnly: true,
       sameSite: "none",
       secure: true,
-      maxAge: appConfig.moveShop_admin_jwt_cookies_expire,
+      maxAge: appConfig.moveShop_admin_jwt_cookies_expire * 1000,
     });
 
     res.json({
