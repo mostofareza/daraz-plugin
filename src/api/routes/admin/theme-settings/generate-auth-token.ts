@@ -30,5 +30,7 @@ export const generateAuthTokenHandler: RequestHandler = async (req, res) => {
   res.status(200).json({
     redirect_url,
     token,
+    success: true,
+    message: "Successfully generated token",
   });
 };

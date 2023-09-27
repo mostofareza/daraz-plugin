@@ -20,13 +20,13 @@ export default function storeRoutes(router: Router, options: ConfigModule) {
   storeRouter.use(cors(storeCorsOptions));
 
   storeRouter.post(
-    "/token/verify",
+    "/api/v1/token/verify",
     verifyAuthTokenMiddleware,
     themeSettings.setCookiesForAdminHandler
   );
 
   storeRouter.get(
-    "/theme",
+    "/api/v1/theme",
     checkThemeCustomizabilityMiddleware,
     async (req, res, next) => {
       res.send({ success: req.user });
@@ -34,6 +34,6 @@ export default function storeRoutes(router: Router, options: ConfigModule) {
   );
 
   // Define the route using the imported handler function
-  storeRouter.get("/campaign-list", getCampaignListHandler);
-  storeRouter.get("/campaign-product/:id", getCampaignProductsHandler);
+  storeRouter.get("/api/v1/campaign-list", getCampaignListHandler);
+  storeRouter.get("/api/v1/campaign-product/:id", getCampaignProductsHandler);
 }

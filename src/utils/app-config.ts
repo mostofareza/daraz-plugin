@@ -2,6 +2,9 @@
 // JWT_LONG_EXPIRE=30 days
 // STORE_FRONT_URL=http://localhost:3000
 
+// note
+//  keep same expire date for jwt_long_expire and moveShop_admin_jwt_cookies_expire
+
 export const appConfig = {
   limit: 20,
   token: process.env.MOVEON_API_TOKEN || "",

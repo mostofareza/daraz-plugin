@@ -36,34 +36,46 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
   adminRouter.use(authenticate());
 
   // generate token for admin to customize there own theme
-  router.get("/admin/token", themeSettings.generateAuthTokenHandler);
+  router.get(
+    "/admin/api/v1/generate-token",
+    themeSettings.generateAuthTokenHandler
+  );
 
   // product import
-  router.get("/inventory-products", getProductListHandler);
-  router.get("/inventory-product-details", getProductDetailsHandler);
-  router.get("/retrieve-inventory-product", retrieveMoveOnInventoryHandler);
+  router.get("/admin/api/v1/inventory-products", getProductListHandler);
+  router.get(
+    "/admin/api/v1/inventory-product-details",
+    getProductDetailsHandler
+  );
+  router.get(
+    "/admin/api/v1/retrieve-inventory-product",
+    retrieveMoveOnInventoryHandler
+  );
 
   // inventory product price role settings
-  router.get("/admin/price-role-settings", getPriceSettingsListHandler);
+  router.get("/admin/api/v1/price-role-settings", getPriceSettingsListHandler);
   router.post(
-    "/admin/price-role-settings",
+    "/admin/api/v1/price-role-settings",
     CreatePriceSettingValidation,
     createPriceSettingsHandler
   );
   router.patch(
-    "/admin/price-role-settings/:id",
+    "/admin/api/v1/price-role-settings/:id",
     UpdatePriceSettingValidation,
     updatePriceSettingsHandler
   );
-  router.delete("/admin/price-role-settings/:id", deletePriceSettingsHandler);
+  router.delete(
+    "/admin/api/v1/price-role-settings/:id",
+    deletePriceSettingsHandler
+  );
 
   // Batch Job Extended Routes
   router.delete(
-    "/admin/batch-job-extended/:id",
+    "/admin/api/v1/batch-job-extended/:id",
     batchJobExtended.deleteBatchJobHandler
   );
   router.delete(
-    "/admin/batch-job-extended",
+    "/admin/api/v1/batch-job-extended",
     batchJobExtended.deleteAllBatchJobHandler
   );
 }

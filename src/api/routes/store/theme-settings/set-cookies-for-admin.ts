@@ -14,7 +14,7 @@ export const setCookiesForAdminHandler: RequestHandler = async (
 
     const newLongExpireToken = tokenService.signToken(
       { ...rest },
-      { expiresIn: appConfig.jwt_long_expire }
+      { expiresIn: appConfig.moveShop_admin_jwt_cookies_expire }
     );
 
     res.cookie(appConfig.moveShop_admin_jwt_cookies_key, newLongExpireToken, {
@@ -24,7 +24,12 @@ export const setCookiesForAdminHandler: RequestHandler = async (
       maxAge: appConfig.moveShop_admin_jwt_cookies_expire,
     });
 
-    res.json({ message: newLongExpireToken });
+    res.json({
+      message: "successfully verified",
+      success: true,
+      result: req.user,
+      token: newLongExpireToken,
+    });
   } catch (error) {
     return res.send({ error: error });
   }
