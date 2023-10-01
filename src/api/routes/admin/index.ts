@@ -23,7 +23,13 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
   adminRouter.use(cors(adminCorsOptions));
 
   // Use the authentication middleware for all admin routes
-  adminRouter.use(authenticate());
+  adminRouter.use((req, res, next) => {
+    if (req.path === "/auth" || req.path === "/invites") {
+      // Exclude /admin/auth and /admin/invites from authentication
+      return next();
+    }
+    authenticate()(req, res, next);
+  });
 
   // Generate token for admin to customize their own theme
   adminRouter.get(
@@ -65,4 +71,5 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
 
   // Mount the admin router under the "/admin" path
   router.use("/admin", adminRouter);
+  // router.use(/\/admin\/((?!auth)(?!invites).*)/, adminRouter);
 }
