@@ -76,25 +76,31 @@ class InventoryProductService extends TransactionBaseService {
       );
       const resData = response.data;
 
-      // Use Promise.all to execute the isImported queries concurrently
-      // const modifyProductsPromises = resData.data.map(async (x) => {
-      //   const isImported =
-      //     (await productRepository
-      //       .createQueryBuilder("product")
-      //       .where("product.metadata->>'link' = :link", { link: x.link })
-      //       .getCount()) > 0;
-      //   return {
-      //     ...x,
-      //     isImported,
-      //   };
-      // });
+      // Extract product links from resData.data
+      const productLinks = resData.data.map((x) => x.link);
 
-      // // Wait for all the isImported queries to complete
-      // const modifiedProducts = await Promise.all(modifyProductsPromises);
+      // Query the database for existing products in one go
+      const existingProducts = await productRepository
+        .createQueryBuilder("product")
+        .where("product.metadata->>'link' IN (:...links)", {
+          links: productLinks,
+        })
+        .getMany();
+
+      // Create a set of existing product links for efficient lookup
+      const existingProductLinks = new Set(
+        existingProducts.map((product) => product.metadata?.link)
+      );
+
+      // Map resData.data to include isImported property based on existence in the set
+      const modifiedProducts = resData.data.map((x) => ({
+        ...x,
+        isImported: existingProductLinks.has(x.link),
+      }));
 
       return {
         // @ts-ignore
-        products: resData.data ?? [],
+        products: modifiedProducts ?? [],
         filters: resData?.filters ?? null,
         offset: Number(offset),
         limit: Number(limit),
