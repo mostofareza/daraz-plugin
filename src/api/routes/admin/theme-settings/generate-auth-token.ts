@@ -22,10 +22,10 @@ export default async (req: Request, res: Response) => {
   // create short expire token for admin
   const token = tokenService.signToken(
     { ...userTokenData },
-    { expiresIn: appConfig.jwt_short_expire }
+    { expiresIn: appConfig.jwtShortExpire }
   );
 
-  const redirect_url = `${appConfig.store_front_url}/edit/?token=${token}&user_id=${currentUser.id}`;
+  const redirect_url = `${appConfig.storeFrontUrl}/edit/?token=${token}&user_id=${currentUser.id}`;
 
   res.status(200).json({
     redirect_url,
