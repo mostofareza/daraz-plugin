@@ -16,52 +16,60 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
     credentials: true,
   };
 
+  // Create a dedicated admin router for better organization
   const adminRouter = Router();
-  const adminStoreRouter = Router();
-  router.use(/\/admin\/((?!auth)(?!invites).*)/, adminRouter);
-  adminStoreRouter.use(cors(adminCorsOptions));
-  router.use(cors(adminCorsOptions));
-  adminRouter.use(cors(adminCorsOptions));
-  adminRouter.use(authenticate());
 
-  // generate token for admin to customize there own theme
-  router.get(
-    "/admin/api/v1/generate-token",
+  // Apply CORS middleware for the admin routes
+  adminRouter.use(cors(adminCorsOptions));
+
+  // Use the authentication middleware for all admin routes
+  adminRouter.use((req, res, next) => {
+    if (req.path === "/auth" || req.path === "/invites") {
+      // Exclude /admin/auth and /admin/invites from authentication
+      return next();
+    }
+    authenticate()(req, res, next);
+  });
+
+  // Generate token for admin to customize their own theme
+  adminRouter.get(
+    "/api/v1/generate-token",
     themeSettings.generateAuthTokenHandler
   );
 
-  // MoveOn inventory product
-  router.get(
-    "/admin/api/v1/inventory-products",
+  // MoveOn inventory product routes
+  adminRouter.get(
+    "/api/v1/inventory-products",
     moveOnInventory.inventoryProducts
   );
-  router.get(
-    "/admin/api/v1/inventory-product-details",
-    moveOnInventory.details
-  );
-  router.get(
-    "/admin/api/v1/retrieve-inventory-product",
+  adminRouter.get("/api/v1/inventory-product-details", moveOnInventory.details);
+  adminRouter.get(
+    "/api/v1/retrieve-inventory-product",
     moveOnInventory.importedProducts
   );
 
-  // inventory product price role settings
-  router.get("/admin/api/v1/price-role-settings", priceSettings.list);
-  router.post(
-    "/admin/api/v1/price-role-settings",
+  // Inventory product price role settings routes
+  adminRouter.get("/api/v1/price-role-settings", priceSettings.list);
+  adminRouter.post(
+    "/api/v1/price-role-settings",
     CreatePriceSettingValidation,
     priceSettings.create
   );
-  router.patch(
-    "/admin/api/v1/price-role-settings/:id",
+  adminRouter.patch(
+    "/api/v1/price-role-settings/:id",
     UpdatePriceSettingValidation,
     priceSettings.update
   );
-  router.delete("/admin/api/v1/price-role-settings/:id", priceSettings.remove);
+  adminRouter.delete("/api/v1/price-role-settings/:id", priceSettings.remove);
 
   // Batch Job Extended Routes
-  router.delete(
-    "/admin/api/v1/batch-job-extended/:id",
+  adminRouter.delete(
+    "/api/v1/batch-job-extended/:id",
     batchJobExtended.removeById
   );
-  router.delete("/admin/api/v1/batch-job-extended", batchJobExtended.removeAll);
+  adminRouter.delete("/api/v1/batch-job-extended", batchJobExtended.removeAll);
+
+  // Mount the admin router under the "/admin" path
+  router.use("/admin", adminRouter);
+  // router.use(/\/admin\/((?!auth)(?!invites).*)/, adminRouter);
 }
