@@ -32,44 +32,34 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
   });
 
   // Generate token for admin to customize their own theme
-  adminRouter.get(
-    "/api/v1/generate-token",
-    themeSettings.generateAuthTokenHandler
-  );
+  adminRouter.get("/generate-token", themeSettings.generateAuthTokenHandler);
 
   // MoveOn inventory product routes
+  adminRouter.get("/inventory-products", moveOnInventory.inventoryProducts);
+  adminRouter.get("/inventory-product-details", moveOnInventory.details);
   adminRouter.get(
-    "/api/v1/inventory-products",
-    moveOnInventory.inventoryProducts
-  );
-  adminRouter.get("/api/v1/inventory-product-details", moveOnInventory.details);
-  adminRouter.get(
-    "/api/v1/retrieve-inventory-product",
+    "/retrieve-inventory-product",
     moveOnInventory.importedProducts
   );
 
   // Inventory product price role settings routes
-  adminRouter.get("/api/v1/price-role-settings", priceSettings.list);
+  adminRouter.get("/price-role-settings", priceSettings.list);
   adminRouter.post(
-    "/api/v1/price-role-settings",
+    "/price-role-settings",
     CreatePriceSettingValidation,
     priceSettings.create
   );
   adminRouter.patch(
-    "/api/v1/price-role-settings/:id",
+    "/price-role-settings/:id",
     UpdatePriceSettingValidation,
     priceSettings.update
   );
-  adminRouter.delete("/api/v1/price-role-settings/:id", priceSettings.remove);
+  adminRouter.delete("/price-role-settings/:id", priceSettings.remove);
 
   // Batch Job Extended Routes
-  adminRouter.delete(
-    "/api/v1/batch-job-extended/:id",
-    batchJobExtended.removeById
-  );
-  adminRouter.delete("/api/v1/batch-job-extended", batchJobExtended.removeAll);
+  adminRouter.delete("/batch-job-extended/:id", batchJobExtended.removeById);
+  adminRouter.delete("/batch-job-extended", batchJobExtended.removeAll);
 
   // Mount the admin router under the "/admin" path
-  router.use("/admin", adminRouter);
-  // router.use(/\/admin\/((?!auth)(?!invites).*)/, adminRouter);
+  router.use("/admin/api/v1", adminRouter);
 }

@@ -15,16 +15,12 @@
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "strictPropertyInitialization": true,
+    "strictPropertyInitialization": false,
     "noImplicitThis": true,
     "outDir": "./dist",
     "rootDir": "src",
     "baseUrl": "src"
   },
   "include": ["src"],
-  "exclude": [
-    "**/__tests__",
-    "**/__fixtures__",
-    "node_modules"
-  ]
+  "exclude": ["**/__tests__", "**/__fixtures__", "node_modules"]
 }
