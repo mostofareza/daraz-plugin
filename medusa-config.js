@@ -1,5 +1,4 @@
 const dotenv = require("dotenv");
-const { appConfig } = require("./src/utils/app-config");
 // const customPlugin = require("../../Plugin/medusa-plugin-custom/dist")
 
 let ENV_FILE_NAME = "";
@@ -32,9 +31,9 @@ const STORE_CORS =
   process.env.STORE_CORS || "http://localhost:8000,http://localhost:7001,http://localhost:3000";
 
 const DATABASE_URL =
-  appConfig.databaseUrl || "postgres://localhost/medusa-store";
+  process.env.DATABASE_URL || "postgres://localhost/medusa-store";
 
-const REDIS_URL = appConfig.redisUrl || "redis://localhost:6379";
+const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 
 const plugins = [
   `medusa-fulfillment-manual`,
