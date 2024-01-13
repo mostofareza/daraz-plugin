@@ -38,34 +38,33 @@ export default async (req:any, res:any) => {
 
 
 function convertToDarazProduct(productData:Product) {
-  // console.log('productData: ', productData);
   const darazProductData = {
       medusa_id: productData.id,
-      PrimaryCategory: "Cloth", // Assuming a default category for now
+      PrimaryCategory: "Cloth", 
       SPUId: productData.id,
-      AssociatedSku: null, // Assuming the first variant as the AssociatedSku
+      AssociatedSku: null, 
       Images: {
         Image: [productData.thumbnail],
       },
       Attributes: {
         name: productData.title,
         short_description: productData.description,
-        brand: null, // You can fill in the brand information if available in your data
-        model: null, // You can fill in the model information if available in your data
-        kid_years: null, // You can fill in the kid_years information if available in your data
-        delivery_option_sof: null, // You can fill in the delivery_option_sof information if available in your data
+        brand: null, 
+        model: null, 
+        kid_years: null, 
+        delivery_option_sof: null, 
       },
       Skus: {
-        SellerSku: null, // Assuming the first variant as the SellerSku
-        color_family: null, // You can fill in the color_family information if available in your data
-        size: null, // Assuming the first variant's option as the size
+        SellerSku: null,
+        color_family: null, 
+        size: null, 
         quantity: null,
-        price: null, // Assuming the first price in EUR
-        package_length: null, // You can fill in the package_length information if available in your data
-        package_height: null, // You can fill in the package_height information if available in your data
-        package_weight: null, // You can fill in the package_weight information if available in your data
-        package_width: null, // You can fill in the package_width information if available in your data
-        package_content: null, // You can fill in the package_content information if available in your data
+        price: null, 
+        package_length: null, 
+        package_height: null,
+        package_weight: null,
+        package_width: null, 
+        package_content: null, 
         Images: {
           Image: [productData.thumbnail],
         },
