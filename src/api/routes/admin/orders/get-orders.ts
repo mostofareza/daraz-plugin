@@ -37,7 +37,7 @@ async function pullOrdersAndProcess(
             items: [
                 {
                     quantity: 1,
-                    variant_id: "variant_01HK4RFBDS5RSW4W8M2Z5ZSQE8"
+                    variant_id: order.id
                 }
             ],
             region_id: "reg_01HK4RFB4BTZWCGW08P2P457CB",
@@ -64,10 +64,6 @@ async function pullOrdersAndProcess(
             },
             customer_id: "cus_01HKZF2YQS3Y3GGSX0CAJRB2RW"
         };
-        
-        console.log(orderData);
-        
-        ;
 
         // Create a draft order
         const draftOrder = await draftOrderService.create(orderData);
