@@ -1,5 +1,6 @@
 import { ConfigModule, authenticate } from "@medusajs/medusa";
 import { Router } from "express";
+//@ts-ignore
 import cors from "cors";
 import { CreatePriceSettingValidation } from "../../../middlewares/create-price-validation-middlewares";
 import { UpdatePriceSettingValidation } from "../../../middlewares/update-price-validation-middleware";
@@ -7,6 +8,8 @@ import batchJobExtended from "./batch-job-extended";
 import themeSettings from "./theme-settings";
 import moveOnInventory from "./moveOn-inventory";
 import priceSettings from "./price-settings";
+import {darazInventory} from './products'
+import { darazOrders } from "./orders";
 
 export default function adminRoutes(router: Router, options: ConfigModule) {
   const { projectConfig } = options;
@@ -30,7 +33,22 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
     }
     authenticate()(req, res, next);
   });
+  //health check
+  adminRouter.get("/health", (req, res) => {
+    res.status(200).json({ message: "ok" });
+  });
 
+
+  //pull orders from daraz
+  adminRouter.get("/daraz/pull-orders", darazOrders.getOrder);
+
+  
+  //Send product to daraz
+  adminRouter.post("/daraz/send-product/:id", darazInventory.create);
+  adminRouter.get("/daraz/send-product/:id", (req, res) => {
+    res.status(200).json({ message: "ok from create" });
+  });
+/* 
   // Generate token for admin to customize their own theme
   adminRouter.get("/generate-token", themeSettings.generateAuthTokenHandler);
 
@@ -59,7 +77,7 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
   // Batch Job Extended Routes
   adminRouter.delete("/batch-job-extended/:id", batchJobExtended.removeById);
   adminRouter.delete("/batch-job-extended", batchJobExtended.removeAll);
-
+ */
   // Mount the admin router under the "/admin" path
   router.use("/admin/api/v1", adminRouter);
 }

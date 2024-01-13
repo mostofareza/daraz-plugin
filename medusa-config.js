@@ -24,11 +24,11 @@ try {
 
 // CORS when consuming Medusa from admin
 const ADMIN_CORS =
-  process.env.ADMIN_CORS || "http://localhost:7000,http://localhost:7001,http://localhost:3000";
+  process.env.ADMIN_CORS || "http://localhost:7000,http://localhost:7001";
 
 // CORS to avoid issues when consuming Medusa from a client
 const STORE_CORS =
-  process.env.STORE_CORS || "http://localhost:8000,http://localhost:7001,http://localhost:3000";
+  process.env.STORE_CORS || "http://localhost:8000,http://localhost:7001";
 
 const DATABASE_URL =
   process.env.DATABASE_URL || "postgres://localhost/medusa-store";
@@ -38,6 +38,7 @@ const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 const plugins = [
   `medusa-fulfillment-manual`,
   `medusa-payment-manual`,
+  // `moveon-inventory-manage`,
   {
     resolve: `@medusajs/file-local`,
     options: {
@@ -64,8 +65,7 @@ const modules = {
   // cacheService: {
   //   resolve: "@medusajs/cache-redis",
   //   options: {
-  //     redisUrl: REDIS_URL,
-  //     // ttl: 30,
+  //     redisUrl: REDIS_URL
   //   }
   // },
 };
@@ -78,7 +78,7 @@ const projectConfig = {
   database_url: DATABASE_URL,
   admin_cors: ADMIN_CORS,
   // Uncomment the following lines to enable REDIS
-  redis_url: REDIS_URL,
+  // redis_url: REDIS_URL
 };
 
 /** @type {import('@medusajs/medusa').ConfigModule} */

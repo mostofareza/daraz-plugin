@@ -1,5 +1,6 @@
 import { ConfigModule } from "@medusajs/medusa";
 import { Router } from "express";
+//@ts-ignore
 import cors from "cors";
 import campaign from "./campaign";
 import { checkThemeCustomizabilityMiddleware } from "../../../middlewares/theme-customize-ability-middleware";
