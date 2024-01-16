@@ -46,30 +46,22 @@ import ProductRepository from "@medusajs/medusa/dist/repositories/product"
         )
       }
      
-       return await this.retrieve_({ id: productId })
+       return await this.retrieve_({ handle: productId })
     }
 
     /* --------- retrieve_ -------------- */
     async retrieve_(
         selector: any
       ): Promise<any> {
-        const manager = this.activeManager_
-        const productRepo = manager.withRepository(this.productRepository_)
-        const { relations, ...query } = buildQuery(selector)
-        const product = await productRepo.findOne({where: selector})
-    
-        if (!product) {
-          const selectorConstraints = Object.entries(selector)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(", ")
-    
+        try {
+          const response= await axios.get(`http://localhost:4000/api/daraz/product/handle/${selector.handle}`);
+          return response.data;
+        } catch (error) {
           throw new MedusaError(
             MedusaError.Types.NOT_FOUND,
-            `Product with ${selectorConstraints} was not found`
+            ` ${error} "productId" must be defined`
           )
         }
-    
-        return product
       }
 
       async create(productObject: any): Promise<any> {
@@ -78,8 +70,10 @@ import ProductRepository from "@medusajs/medusa/dist/repositories/product"
               const response = await axios.post('http://localhost:4000/api/daraz/product/create-product', productObject);
               return response.data;
             } catch (error) {
-              console.error('Error sending product to Daraz API:');
-              throw error;
+              throw new MedusaError(
+                MedusaError.Types.NOT_FOUND,
+                ` ${error} "something went wrong while creating product"`
+              )
             } 
             }
         );
@@ -112,7 +106,21 @@ import ProductRepository from "@medusajs/medusa/dist/repositories/product"
             }
         );
       }
-
+      /* delete product */
+      async delete(productId: string): Promise<any> {
+        return await this.atomicPhase_(async (manager) => {
+            try {
+              const response = await axios.delete(`http://localhost:4000/api/daraz/product/${productId}`);
+              return response.data;
+            } catch (error) {
+              throw new MedusaError(
+                MedusaError.Types.NOT_FOUND,
+                ` ${error} "something went wrong while deleting product"`
+              )
+            } 
+            }
+        );
+      }
   }
   
   export default DarazProductService
