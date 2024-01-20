@@ -17,7 +17,7 @@ export default async (req: Request, res: Response) => {
     await pullOrdersAndProcess(req, darazProductService, draftOrderService);
   }, interval);
 
-  res.json({ message: "Order pulling process initiated", createdDraftOrder });
+  res.json({ message: "Order pulling process initiated", createdDraftOrder: createdDraftOrder });
 };
 
 async function pullOrdersAndProcess(req: Request, darazProductService: DarazProductService, draftOrderService: DraftOrderService) {
@@ -28,29 +28,21 @@ async function pullOrdersAndProcess(req: Request, darazProductService: DarazProd
       // Iterate through the orders and create draft orders
       for (const order of orders) {
         const orderData:DraftOrderCreateProps = {
-
-          email: "admin@medusa-test.com",
+          email: "reza@gmail.com",
           items: [
               {
                   quantity: 1,
-                  variant_id: order.id
+                  variant_id: order.id,
+                  unit_price: order.price,
               }
           ],
-          region_id: "reg_01HK4RFB4BTZWCGW08P2P457CB",
-          metadata: {
-              order_id: order._id,
-              sales_channel_id: "sc_daraz",
-              sales_channel_name: "Daraz",
-          },
-          shipping_methods: [
-              {
-                  option_id: "so_01HK4RFB6H1KHYPKK43X2VV7EV"
-              }
-          ],
+          region_id: "reg_01HMDY98GXNSTBXMNTS5PMPS9C",
+          metadata: {},
+          shipping_methods: [],
           shipping_address: {
               address_1: "daraz address",
               city: "city",
-              country_code: "se",
+              country_code: "us",
               first_name: "daraz first name",
               last_name: "daraz last name",
               postal_code: "postcode"
@@ -58,12 +50,12 @@ async function pullOrdersAndProcess(req: Request, darazProductService: DarazProd
           billing_address: {
               address_1: "daraz address",
               city: "city",
-              country_code: "se",
+              country_code: "us",
               first_name: "daraz first name",
               last_name: "daraz last name",
               postal_code: "postcode"
           },
-          customer_id: "cus_01HKZF2YQS3Y3GGSX0CAJRB2RW"
+          customer_id: "cus_01HME1PYVX52RTEEPQQJ599W3V"
       };
 
         const manager: EntityManager = req.scope.resolve("manager");
@@ -95,6 +87,10 @@ async function pullOrdersAndProcess(req: Request, darazProductService: DarazProd
 
 async function updateDraftOrderDetails(req: Request, draftOrder: DraftOrder) {
   const cartService: CartService = req.scope.resolve("cartService");
+  const orderService: OrderService = req.scope.resolve("orderService");
+  const manager: EntityManager = req.scope.resolve("manager");
+  const ProductVariantInventoryService = req.scope.resolve("productVariantInventoryService");
+  const ProductVariantService = req.scope.resolve("productVariantService");
 
   draftOrder.cart = await cartService
     .withTransaction(req.scope.resolve("manager"))
@@ -102,6 +98,30 @@ async function updateDraftOrderDetails(req: Request, draftOrder: DraftOrder) {
       relations: defaultAdminDraftOrdersCartRelations,
       select: defaultAdminDraftOrdersCartFields,
     });
-
+  console.log("draftOrder.cart", draftOrder.cart);
+  draftOrder.cart.items[0].variant_id = "variant_01HMDY98QEKTAMG77G9WNV2CV9";
+  draftOrder.cart.items[0].unit_price = 1000;
+  draftOrder.cart.items[0].subtotal = 1;
+  draftOrder.cart.subtotal = 1000;
+  // draftOrder.cart.items = await Promise.all(
+  //   draftOrder.cart.items.map(async (item) => {
+  //     const variant = await ProductVariantService.retrieve(item.variant_id, {
+  //       relations: ["product"],
+  //     });
+  //     const inventory = await ProductVariantInventoryService.retrieve(
+  //       item.variant_id
+  //     );
+  //     return {
+  //       ...item,
+  //       variant,
+  //       inventory_quantity: inventory.inventory_quantity,
+  //     };
+  //   })
+  // );
+  const createdOrder = await orderService.createFromCart(draftOrder.cart)
+  console.log("createdOrder", createdOrder);
+  // const completedOrder= await orderService.completeOrder(draftOrder.id)
+  // console.log("completedOrder", completedOrder);
+  
   return draftOrder;
 }

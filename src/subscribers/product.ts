@@ -1,4 +1,4 @@
-import { ProductService,  SalesChannelService, defaultAdminProductRelations } from "@medusajs/medusa"
+import { DiscountService, ProductService,  SalesChannelService, defaultAdminProductRelations } from "@medusajs/medusa"
 import { IEventBusService, ISearchService } from "@medusajs/types"
 import { defaultSearchIndexingProductRelations } from "@medusajs/utils"
 import { indexTypes } from "medusa-core-utils"
