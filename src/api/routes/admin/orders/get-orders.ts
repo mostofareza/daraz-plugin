@@ -1,4 +1,4 @@
-import { OrderService, DraftOrderService, DraftOrder, CartService, defaultAdminDraftOrdersFields, defaultAdminDraftOrdersRelations, defaultAdminDraftOrdersCartRelations, defaultAdminDraftOrdersCartFields } from "@medusajs/medusa";
+import { OrderService, DraftOrderService, DraftOrder, CartService, defaultAdminDraftOrdersFields, defaultAdminDraftOrdersRelations, defaultAdminDraftOrdersCartRelations, defaultAdminDraftOrdersCartFields, Cart, ProductVariantInventoryService } from "@medusajs/medusa";
 import { Request, Response } from "express";
 import DarazProductService from "services/daraz-product";
 import { EntityManager } from "typeorm";
@@ -28,17 +28,17 @@ async function pullOrdersAndProcess(req: Request, darazProductService: DarazProd
       // Iterate through the orders and create draft orders
       for (const order of orders) {
         const orderData:DraftOrderCreateProps = {
+
           email: "reza@gmail.com",
           items: [
               {
                   quantity: 1,
-                  variant_id: order.id,
-                  unit_price: order.price,
-              }
+                  variant_id: "variant_01HMDY98QEKTAMG77G9WNV2CV9",
+                  unit_price: 30000,
+              },
           ],
           region_id: "reg_01HMDY98GXNSTBXMNTS5PMPS9C",
-          metadata: {},
-          shipping_methods: [],
+          metadata: {},   
           shipping_address: {
               address_1: "daraz address",
               city: "city",
@@ -47,6 +47,7 @@ async function pullOrdersAndProcess(req: Request, darazProductService: DarazProd
               last_name: "daraz last name",
               postal_code: "postcode"
           },
+          shipping_methods: [],
           billing_address: {
               address_1: "daraz address",
               city: "city",
@@ -89,8 +90,8 @@ async function updateDraftOrderDetails(req: Request, draftOrder: DraftOrder) {
   const cartService: CartService = req.scope.resolve("cartService");
   const orderService: OrderService = req.scope.resolve("orderService");
   const manager: EntityManager = req.scope.resolve("manager");
-  const ProductVariantInventoryService = req.scope.resolve("productVariantInventoryService");
-  const ProductVariantService = req.scope.resolve("productVariantService");
+  const productVariantInventoryService: ProductVariantInventoryService = req.scope.resolve("productVariantInventoryService");
+  const productVariantService = req.scope.resolve("productVariantService");
 
   draftOrder.cart = await cartService
     .withTransaction(req.scope.resolve("manager"))
@@ -98,30 +99,23 @@ async function updateDraftOrderDetails(req: Request, draftOrder: DraftOrder) {
       relations: defaultAdminDraftOrdersCartRelations,
       select: defaultAdminDraftOrdersCartFields,
     });
-  console.log("draftOrder.cart", draftOrder.cart);
-  draftOrder.cart.items[0].variant_id = "variant_01HMDY98QEKTAMG77G9WNV2CV9";
-  draftOrder.cart.items[0].unit_price = 1000;
-  draftOrder.cart.items[0].subtotal = 1;
-  draftOrder.cart.subtotal = 1000;
-  // draftOrder.cart.items = await Promise.all(
-  //   draftOrder.cart.items.map(async (item) => {
-  //     const variant = await ProductVariantService.retrieve(item.variant_id, {
-  //       relations: ["product"],
-  //     });
-  //     const inventory = await ProductVariantInventoryService.retrieve(
-  //       item.variant_id
-  //     );
-  //     return {
-  //       ...item,
-  //       variant,
-  //       inventory_quantity: inventory.inventory_quantity,
-  //     };
-  //   })
-  // );
-  const createdOrder = await orderService.createFromCart(draftOrder.cart)
+  // await cartService.setPaymentSession(draftOrder.cart_id, "system")
+  await cartService.setPaymentSessions(draftOrder.cart_id)
+  await cartService.setPaymentSession(draftOrder.cart_id, "manual")
+
+  const draftOrderCart: Cart = draftOrder.cart;
+  draftOrderCart.items[0].variant_id = "variant_01HMDY98QEKTAMG77G9WNV2CV9";
+  draftOrderCart.items[0].unit_price = 10000;
+  draftOrderCart.items[0].subtotal = 1;
+  draftOrderCart.subtotal = 10000;
+  await productVariantInventoryService.adjustInventory('variant_01HMDY98QEKTAMG77G9WNV2CV9',  "decrement",1);
+  
+  const createdOrder = await orderService.createFromCart(draftOrderCart)
   console.log("createdOrder", createdOrder);
-  // const completedOrder= await orderService.completeOrder(draftOrder.id)
-  // console.log("completedOrder", completedOrder);
+  await orderService.withTransaction(manager).capturePayment(createdOrder.id);
+  const completedOrder = await orderService.withTransaction(manager).completeOrder(createdOrder.id);
+
+  console.log("completedOrder", completedOrder);
   
   return draftOrder;
 }

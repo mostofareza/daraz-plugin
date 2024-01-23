@@ -1,4 +1,4 @@
-import { DiscountService, ProductService,  SalesChannelService, defaultAdminProductRelations } from "@medusajs/medusa"
+import { CartService, ProductService,  SalesChannelService, defaultAdminDraftOrdersCartRelations, defaultAdminProductRelations } from "@medusajs/medusa"
 import { IEventBusService, ISearchService } from "@medusajs/types"
 import { defaultSearchIndexingProductRelations } from "@medusajs/utils"
 import { indexTypes } from "medusa-core-utils"
@@ -12,6 +12,7 @@ type InjectedDependencies = {
   darazProductService: DarazProductService
   salesChannelService: SalesChannelService
   inventoryService: InventoryProductService
+  cartService: CartService
 }
 
 class ProductSearchSubscriber {
@@ -20,6 +21,7 @@ class ProductSearchSubscriber {
   private readonly productService_: ProductService
   private readonly darazProductService_: DarazProductService
   private readonly salesChannelService_: SalesChannelService
+  private readonly cartService_: CartService
 
   constructor(container: InjectedDependencies) {
     this.eventBusService_ = container.eventBusService
@@ -27,11 +29,23 @@ class ProductSearchSubscriber {
     this.productService_ = container.productService
     this.darazProductService_ = container.darazProductService
     this.salesChannelService_ = container.salesChannelService
+    this.cartService_ = container.cartService
 
     this.eventBusService_
       .subscribe(ProductService.Events.CREATED, this.handleProductCreation)
       .subscribe(ProductService.Events.UPDATED, this.handleProductUpdate)
       .subscribe(ProductService.Events.DELETED, this.handleProductDeletion)
+      .subscribe(CartService.Events.CREATED, this.handleCartCreation)
+      .subscribe(CartService.Events.UPDATED, this.handleCartCreation)
+  }
+
+  handleCartCreation = async (data:any) => {
+    const cart = await this.cartService_.retrieve(data.id, {
+      relations: defaultAdminDraftOrdersCartRelations,
+    })
+    // console.log("cart", cart);
+    // const order = await this.orderService_.createFromCart(cart)
+    // return order
   }
 
   handleProductCreation = async (data:any) => {
