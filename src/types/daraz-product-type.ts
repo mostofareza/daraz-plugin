@@ -40,7 +40,7 @@ interface Image {
   }
   
   // Example usage:
-    const darazProductData: DarazProduct = {
+    export const darazProductData: DarazProduct = {
     Product: {
       medusa_id: "prod_01HK4RFBZRVRCMVD2X9GWADT7P",
       PrimaryCategory: "Merch",
@@ -74,6 +74,4 @@ interface Image {
       },
     },
   };
-  
-  console.log(darazProductData);
   

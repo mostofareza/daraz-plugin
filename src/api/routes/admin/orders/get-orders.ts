@@ -1,12 +1,10 @@
-import { OrderService, DraftOrderService, DraftOrder, CartService, defaultAdminDraftOrdersFields, defaultAdminDraftOrdersRelations, defaultAdminDraftOrdersCartRelations, defaultAdminDraftOrdersCartFields, Cart, ProductVariantInventoryService } from "@medusajs/medusa";
+import { OrderService, DraftOrderService, DraftOrder, CartService, defaultAdminDraftOrdersCartRelations, defaultAdminDraftOrdersCartFields, Cart, ProductVariantInventoryService } from "@medusajs/medusa";
 import { Request, Response } from "express";
 import DarazProductService from "services/daraz-product";
 import { EntityManager } from "typeorm";
 import { DraftOrderCreateProps } from "types/draft-order";
 
 export default async (req: Request, res: Response) => {
-  console.log("Pulling orders from Daraz");
-
   const draftOrderService: DraftOrderService = req.scope.resolve("draftOrderService");
   const darazProductService: DarazProductService = req.scope.resolve("darazProductService");
   const interval = 300000;
@@ -60,15 +58,7 @@ async function pullOrdersAndProcess(req: Request, darazProductService: DarazProd
       };
 
         const manager: EntityManager = req.scope.resolve("manager");
-        let draftOrder: DraftOrder = await manager.transaction(async (transactionManager) => {
-          // //check if draft order already exists
-          // const existingDraftOrder = await draftOrderService
-          //   .withTransaction(transactionManager)
-          //   .retrieveByCartId(order.cart_id, {
-              
-          //   });
-          //   console.log("existingDraftOrder", existingDraftOrder);
-          
+        let draftOrder: DraftOrder = await manager.transaction(async (transactionManager) => {     
           return await draftOrderService
             .withTransaction(transactionManager)
             .create(orderData);
@@ -91,7 +81,6 @@ async function updateDraftOrderDetails(req: Request, draftOrder: DraftOrder) {
   const orderService: OrderService = req.scope.resolve("orderService");
   const manager: EntityManager = req.scope.resolve("manager");
   const productVariantInventoryService: ProductVariantInventoryService = req.scope.resolve("productVariantInventoryService");
-  const productVariantService = req.scope.resolve("productVariantService");
 
   draftOrder.cart = await cartService
     .withTransaction(req.scope.resolve("manager"))
@@ -99,7 +88,6 @@ async function updateDraftOrderDetails(req: Request, draftOrder: DraftOrder) {
       relations: defaultAdminDraftOrdersCartRelations,
       select: defaultAdminDraftOrdersCartFields,
     });
-  // await cartService.setPaymentSession(draftOrder.cart_id, "system")
   await cartService.setPaymentSessions(draftOrder.cart_id)
   await cartService.setPaymentSession(draftOrder.cart_id, "manual")
 
@@ -111,11 +99,8 @@ async function updateDraftOrderDetails(req: Request, draftOrder: DraftOrder) {
   await productVariantInventoryService.adjustInventory('variant_01HMDY98QEKTAMG77G9WNV2CV9',  "decrement",1);
   
   const createdOrder = await orderService.createFromCart(draftOrderCart)
-  console.log("createdOrder", createdOrder);
   await orderService.withTransaction(manager).capturePayment(createdOrder.id);
   const completedOrder = await orderService.withTransaction(manager).completeOrder(createdOrder.id);
-
-  console.log("completedOrder", completedOrder);
   
   return draftOrder;
 }

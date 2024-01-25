@@ -3,7 +3,7 @@ import { IEventBusService, ISearchService } from "@medusajs/types"
 import { defaultSearchIndexingProductRelations } from "@medusajs/utils"
 import { indexTypes } from "medusa-core-utils"
 import DarazProductService from "services/daraz-product"
-import InventoryProductService from "services/inventory-product"
+// import InventoryProductService from "services/inventory-product"
 
 type InjectedDependencies = {
   eventBusService: IEventBusService
@@ -11,7 +11,7 @@ type InjectedDependencies = {
   productService: ProductService
   darazProductService: DarazProductService
   salesChannelService: SalesChannelService
-  inventoryService: InventoryProductService
+  // inventoryService: InventoryProductService
   cartService: CartService
 }
 

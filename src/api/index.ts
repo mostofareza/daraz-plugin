@@ -1,7 +1,6 @@
 import express, { Router } from "express";
 import { errorHandler } from "@medusajs/medusa";
 import bodyParser from "body-parser";
-import storeRoutes from "./routes/store";
 import adminRoutes from "./routes/admin";
 
 export default function createRouter(
@@ -11,7 +10,6 @@ export default function createRouter(
   const router = express.Router();
 
   router.use(bodyParser.json());
-  storeRoutes(router, options);
   adminRoutes(router, options);
   router.use(errorHandler());
   module.exports = router;
