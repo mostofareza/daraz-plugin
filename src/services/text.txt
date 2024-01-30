@@ -1,0 +1,283 @@
+please can you make my convertToXml function 100% perfect?
+=========================================
+here is my productObj:
+  {
+            "id": "prod_01HN7E0EEJT19YRG0PBK7K9J1H",
+            "created_at": "2024-01-28T07:02:13.790Z",
+            "updated_at": "2024-01-28T07:02:13.790Z",
+            "deleted_at": null,
+            "title": "Medusa T-Shirt",
+            "subtitle": null,
+            "description": "Reimagine the feeling of a classic T-shirt. With our cotton T-shirts, everyday essentials no longer have to be ordinary.",
+            "handle": "t-shirt",
+            "is_giftcard": false,
+            "status": "published",
+            "thumbnail": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png",
+            "weight": 400,
+            "length": null,
+            "height": null,
+            "width": null,
+            "hs_code": null,
+            "origin_country": null,
+            "mid_code": null,
+            "material": null,
+            "collection_id": null,
+            "type_id": null,
+            "discountable": true,
+            "external_id": null,
+            "metadata": null,
+            "categories": [
+                {
+                    "id": "pcat_shirts",
+                    "created_at": "2024-01-28T07:02:13.790Z",
+                    "updated_at": "2024-01-28T07:02:13.790Z",
+                    "name": "Shirts",
+                    "description": "",
+                    "handle": "shirts",
+                    "is_active": true,
+                    "is_internal": false,
+                    "parent_category_id": null,
+                    "rank": 1,
+                    "metadata": null
+                }
+            ],
+            "collection": null,
+            "images": [
+                {
+                    "id": "img_01HN7E0EE5EN73HK488KHYDKW0",
+                    "created_at": "2024-01-28T07:02:13.790Z",
+                    "updated_at": "2024-01-28T07:02:13.790Z",
+                    "deleted_at": null,
+                    "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png",
+                    "metadata": null
+                },
+                {
+                    "id": "img_01HN7E0EE54EADDEHXXJZ92SRN",
+                    "created_at": "2024-01-28T07:02:13.790Z",
+                    "updated_at": "2024-01-28T07:02:13.790Z",
+                    "deleted_at": null,
+                    "url": "https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-back.png",
+                    "metadata": null
+                },
+                
+            ],
+            "options": [
+                {
+                    "id": "opt_01HN7E0EFMCCR44M9NSRQ12F6X",
+                    "created_at": "2024-01-28T07:02:13.790Z",
+                    "updated_at": "2024-01-28T07:02:13.790Z",
+                    "deleted_at": null,
+                    "title": "Size",
+                    "product_id": "prod_01HN7E0EEJT19YRG0PBK7K9J1H",
+                    "metadata": null
+                },
+                {
+                    "id": "opt_01HN7E0EFNAE2XRTTS1C13ZFY1",
+                    "created_at": "2024-01-28T07:02:13.790Z",
+                    "updated_at": "2024-01-28T07:02:13.790Z",
+                    "deleted_at": null,
+                    "title": "Color",
+                    "product_id": "prod_01HN7E0EEJT19YRG0PBK7K9J1H",
+                    "metadata": null
+                }
+            ],
+            "profiles": [
+                {
+                    "id": "sp_01HN7DWWP10Y3402B71E6GFM3C",
+                    "created_at": "2024-01-28T07:00:17.643Z",
+                    "updated_at": "2024-01-28T07:00:17.643Z",
+                    "deleted_at": null,
+                    "name": "Default Shipping Profile",
+                    "type": "default",
+                    "metadata": null
+                }
+            ],
+            "profile": {
+                "id": "sp_01HN7DWWP10Y3402B71E6GFM3C",
+                "created_at": "2024-01-28T07:00:17.643Z",
+                "updated_at": "2024-01-28T07:00:17.643Z",
+                "deleted_at": null,
+                "name": "Default Shipping Profile",
+                "type": "default",
+                "metadata": null
+            },
+            "profile_id": "sp_01HN7DWWP10Y3402B71E6GFM3C",
+            "sales_channels": [
+                {
+                    "id": "sc_01HN7DWWQ8BPPHHH4YS7S5WP2Z",
+                    "created_at": "2024-01-28T07:00:17.643Z",
+                    "updated_at": "2024-01-28T07:00:17.643Z",
+                    "deleted_at": null,
+                    "name": "Default Sales Channel",
+                    "description": "Created by Medusa",
+                    "is_disabled": false,
+                    "metadata": null
+                },
+                {
+                    "id": "sc_daraz",
+                    "created_at": "2024-01-29T05:27:20.872Z",
+                    "updated_at": "2024-01-29T05:27:20.872Z",
+                    "deleted_at": null,
+                    "name": "Daraz",
+                    "description": "This is Daraz plugin",
+                    "is_disabled": false,
+                    "metadata": null
+                }
+            ],
+            "tags": [],
+            "type": null,
+            "variants": [
+                {
+                    "id": "variant_01HN7E0EGYVD01ZPD1JTJQ7N22",
+                    "created_at": "2024-01-28T07:02:13.790Z",
+                    "updated_at": "2024-01-28T07:02:13.790Z",
+                    "deleted_at": null,
+                    "title": "S / Black",
+                    "product_id": "prod_01HN7E0EEJT19YRG0PBK7K9J1H",
+                    "sku": null,
+                    "barcode": null,
+                    "ean": null,
+                    "upc": null,
+                    "variant_rank": 0,
+                    "inventory_quantity": 100,
+                    "allow_backorder": false,
+                    "manage_inventory": true,
+                    "hs_code": null,
+                    "origin_country": null,
+                    "mid_code": null,
+                    "material": null,
+                    "weight": null,
+                    "length": null,
+                    "height": null,
+                    "width": null,
+                    "metadata": null,
+                    "options": [
+                        {
+                            "id": "optval_01HN7E0EGYCM7XYXAQYM7NQ55H",
+                            "created_at": "2024-01-28T07:02:13.790Z",
+                            "updated_at": "2024-01-28T07:02:13.790Z",
+                            "deleted_at": null,
+                            "value": "Black",
+                            "option_id": "opt_01HN7E0EFNAE2XRTTS1C13ZFY1",
+                            "variant_id": "variant_01HN7E0EGYVD01ZPD1JTJQ7N22",
+                            "metadata": null
+                        },
+                        {
+                            "id": "optval_01HN7E0EGYJ4H1FWVXJ1G0DXM0",
+                            "created_at": "2024-01-28T07:02:13.790Z",
+                            "updated_at": "2024-01-28T07:02:13.790Z",
+                            "deleted_at": null,
+                            "value": "S",
+                            "option_id": "opt_01HN7E0EFMCCR44M9NSRQ12F6X",
+                            "variant_id": "variant_01HN7E0EGYVD01ZPD1JTJQ7N22",
+                            "metadata": null
+                        }
+                    ],
+                    "prices": [
+                        {
+                            "id": "ma_01HN7E0EHQANRV885W0SPWGTF9",
+                            "created_at": "2024-01-28T07:02:13.790Z",
+                            "updated_at": "2024-01-28T07:02:13.790Z",
+                            "deleted_at": null,
+                            "currency_code": "usd",
+                            "amount": 2200,
+                            "min_quantity": null,
+                            "max_quantity": null,
+                            "price_list_id": null,
+                            "region_id": null,
+                            "price_list": null,
+                            "variant_id": "variant_01HN7E0EGYVD01ZPD1JTJQ7N22"
+                        },
+                        {
+                            "id": "ma_01HN7E0EHQJSY165PHG6C582S8",
+                            "created_at": "2024-01-28T07:02:13.790Z",
+                            "updated_at": "2024-01-28T07:02:13.790Z",
+                            "deleted_at": null,
+                            "currency_code": "eur",
+                            "amount": 1950,
+                            "min_quantity": null,
+                            "max_quantity": null,
+                            "price_list_id": null,
+                            "region_id": null,
+                            "price_list": null,
+                            "variant_id": "variant_01HN7E0EGYVD01ZPD1JTJQ7N22"
+                        }
+                    ],
+                    "original_price": null,
+                    "calculated_price": null,
+                    "original_price_incl_tax": null,
+                    "calculated_price_incl_tax": null,
+                    "original_tax": null,
+                    "calculated_tax": null,
+                    "tax_rates": null
+                },
+            ]
+        },
+========================
+Here is my code:
+ async create(productObject: Product): Promise<any> {
+    const reformedToXmlProduct = convertToXml(productObject);
+    return await this.atomicPhase_(async (manager) => {
+      try {
+        const response = await axios.post(
+          `${process.env.DARAZ_SERVER_URL}/product/create?status=200`,
+          reformedToXmlProduct,
+          {
+            headers: {
+              "Content-Type": "application/xml",
+            },
+          }
+        );
+
+        return response.data;
+      } catch (error) {
+        throw new MedusaError(
+          MedusaError.Types.NOT_FOUND,
+          `${error} "something went wrong while creating product"`
+        );
+      }
+    });
+  }
+============================
+here is the function:
+function convertToXml(product: Product) {
+  const xmlProduct = `<?xml version="1.0" encoding="UTF-8"?>
+<Request>
+    <Product>
+        <PrimaryCategory>Category</PrimaryCategory>
+        <SPUId/>
+        <AssociatedSku/>
+        <Images>
+            <Image>https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png</Image>
+        </Images>
+        <Attributes>
+            <name>Medusa T-Shirt</name>
+            <short_description>Reimagine the feeling of a classic T-shirt. With our cotton T-shirts, everyday essentials no longer have to be ordinary.</short_description>
+            <brand>Remark</brand>
+            <model>asdf</model>
+            <kid_years>Kids (6-10yrs)</kid_years>
+            <delivery_option_sof>Yes</delivery_option_sof>
+        </Attributes>
+        <Skus>
+            <Sku>
+                <SellerSku>variant_01HMDY98QEKTAMG77G9WNV2CV9</SellerSku>
+                <color_family>Black</color_family>
+                <size>S</size>
+                <quantity>108</quantity>
+                <price>19.50</price>
+                <package_length>11</package_length>
+                <package_height>22</package_height>
+                <package_weight>400</package_weight>
+                <package_width>44</package_width>
+                <package_content>This is what's in the box</package_content>
+                <Images>
+                    <!-- Add additional image URLs from your JSON data here -->
+                    <Image>https://medusa-public-images.s3.eu-west-1.amazonaws.com/tee-black-front.png</Image>
+                </Images>
+            </Sku>
+        </Skus>
+    </Product>
+</Request>
+`;
+  return xmlProduct;
+}

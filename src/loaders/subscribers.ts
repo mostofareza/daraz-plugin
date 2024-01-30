@@ -8,11 +8,8 @@ import { MedusaContainer } from "@medusajs/medusa"
  * Registers all subscribers in the subscribers directory
  */
 export default ({ container }: { container: MedusaContainer }) => {
-  const isTest = process.env.NODE_ENV === "test"
 
-  const corePath = isTest
-    ? "../subscribers/__mocks__/*.js"
-    : "../subscribers/*.js"
+  const corePath ="../subscribers/*.js"
   const coreFull = path.join(__dirname, corePath)
 
   const core = glob.sync(coreFull, { cwd: __dirname })

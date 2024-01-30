@@ -1,3 +1,3 @@
-import getOrder from './get-orders'
+import getOrder from './manage-orders'
 
 export const darazOrders = { getOrder };

@@ -26,7 +26,6 @@ interface Image {
   }
   
   interface Product {
-    medusa_id: string;
     PrimaryCategory: string;
     SPUId: string;
     AssociatedSku: string;
@@ -40,9 +39,8 @@ interface Image {
   }
   
   // Example usage:
-    export const darazProductData: DarazProduct = {
+  const darazProductData: DarazProduct = {
     Product: {
-      medusa_id: "prod_01HK4RFBZRVRCMVD2X9GWADT7P",
       PrimaryCategory: "Merch",
       SPUId: "prod_01HK4RFBZRVRCMVD2X9GWADT7P",
       AssociatedSku: "variant_01HK4RFC06K3GQ6Q1CFX1Q8A9Q",

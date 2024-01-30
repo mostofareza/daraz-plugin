@@ -1,7 +1,7 @@
 import { ConfigModule, authenticate } from "@medusajs/medusa";
 import { Router } from "express";
 import cors from "cors";
-import {darazInventory} from './products'
+import { darazInventory } from "./products";
 import { darazOrders } from "./orders";
 
 export default function adminRoutes(router: Router, options: ConfigModule) {
@@ -31,13 +31,11 @@ export default function adminRoutes(router: Router, options: ConfigModule) {
     res.status(200).json({ message: "ok" });
   });
 
-
   //pull orders from daraz
   adminRouter.get("/daraz/pull-orders", darazOrders.getOrder);
 
-  
   //Send product to daraz
-  adminRouter.post("/daraz/send-product/:id", darazInventory.create);
+  adminRouter.post("/daraz/send-product", darazInventory.create);
 
   // Mount the admin router under the "/admin" path
   router.use("/admin/api/v1", adminRouter);
